@@ -23,6 +23,9 @@ let curY;
 let piColor;
 let r;
 
+// decoration
+let preClickX, preClickY;
+
 function setup() {
   let canvas = createCanvas(800, 500);
   canvas.id("p5-canvas");
@@ -42,9 +45,7 @@ function setup() {
   let c4 = color(0, 0, 112); // Blue4
   let c5 = color(0, 0, 30); // Blue5
   bgMetadataInit(10, 25, 4, 10);
-  // createBgColorAndWave(c1, c4, c5, c3);
   createBgColorAndWave(bgLayer, c1, c4, c5, c3);
-  // create3CCSets();
   create3CCSets(bgLayer);
 
   // moving line initialization
@@ -57,25 +58,25 @@ function setup() {
   piColor = 0;
   r = 25;
   lineLayer.clear();
+
+  // decoration
+  preClickX = 0;
+  preClickY = baseLine;
 }
 
 function draw() {
-  // Color: compute stroke color from a phase angle (piColor).
-  // cos() drives RED, sin() drives BLUE, GREEN stays maxed (255).
-  // map() converts outputs into valid RGB.
-
   // Always draw bgLayer first
   image(bgLayer, 0, 0);
 
-  // Draw Line
+  // line layer
+  
+  // Line color
   let strokeR = map(cos(piColor), -1, 1, 0, 255);
   let strokeG = 255;
   let strokeB = map(sin(piColor), -1, 1, 0, 255);
-
   // draw the segment onto the persistent lineLayer
   lineLayer.stroke(strokeR, strokeG, strokeB);
   lineLayer.strokeWeight(10);
-
   // First point: preX, preY; Destination Point: curX, curY
   lineLayer.line(preX, preY, curX, curY);
   image(lineLayer, 0, 0);
@@ -84,21 +85,23 @@ function draw() {
   movingLayer.clear();
   movingLayer.push();
   movingLayer.noStroke();
+
+  // sparking cursor
   let controlledX;
+  // random sparking small circles
   for (let i = 0; i < 12; i++) {
-    let ang = random(TWO_PI);
+    let randomAngle = random(TWO_PI);
     let distance = random(0, 14);
-
     controlledX = constrain(mouseX, curX, curX + 50);
-
-    let x = controlledX + cos(ang) * distance + random(-1, 1);
-    let y = mouseY + sin(ang) * distance + random(-1, 1);
+    let x = controlledX + cos(randomAngle) * distance + random(-1, 1);
+    let y = mouseY + sin(randomAngle) * distance + random(-1, 1);
     let sizeSpark = random(1.5, 6);
-    let alpha = random(100, 255);
+    let alpha = random(100, 255); // the transparency
     movingLayer.fill(strokeR, random(180, 255), strokeB, alpha);
     movingLayer.circle(x, y, sizeSpark);
   }
   movingLayer.fill(strokeR, strokeG, strokeB, 255);
+  // the main cursor
   movingLayer.circle(controlledX, mouseY, 6);
   movingLayer.pop();
 
