@@ -1,5 +1,9 @@
 // Layer
 let bgLayer, lineLayer, movingLayer;
+let previousFrameLayer;
+
+const trueWidth = 800;
+const trueHeight = 500;
 
 // static background
 const totalColorNum = 4;
@@ -27,15 +31,16 @@ let r;
 let preClickX, preClickY;
 
 function setup() {
-  let canvas = createCanvas(800, 500);
+  let canvas = createCanvas(trueWidth * 2, trueHeight);
   canvas.id("p5-canvas");
   canvas.parent("p5-canvas-container");
   noCursor();
 
   // different layer
-  bgLayer = createGraphics(width, height);
-  lineLayer = createGraphics(width, height);
-  movingLayer = createGraphics(width, height);
+  bgLayer = createGraphics(trueWidth, trueHeight);
+  lineLayer = createGraphics(trueWidth, trueHeight);
+  movingLayer = createGraphics(trueWidth, trueHeight);
+  previousFrameLayer = createGraphics(trueWidth, trueHeight);
 
   // background variables
   // smaller ligher
@@ -47,9 +52,10 @@ function setup() {
   bgMetadataInit(10, 25, 4, 10);
   createBgColorAndWave(bgLayer, c1, c4, c5, c3);
   create3CCSets(bgLayer);
+  previousFrameLayer.image(bgLayer, 0, 0);
 
   // moving line initialization
-  baseLine = height / 2;
+  baseLine = trueHeight / 2;
   baseLineEnd = 0;
   preX = 0;
   preY = baseLine;
@@ -65,11 +71,15 @@ function setup() {
 }
 
 function draw() {
-  // Always draw bgLayer first
-  image(bgLayer, 0, 0);
+  background(255);
+  // 0-trueWidth: previousFrameLayer
+  image(previousFrameLayer, 0, 0);
+  // trueWidth-2*trueWidth: bgLayer (and current layer)
+  image(previousFrameLayer, 0, 0);
+  image(bgLayer, trueWidth, 0);
 
   // line layer
-  
+
   // Line color
   let strokeR = map(cos(piColor), -1, 1, 0, 255);
   let strokeG = 255;
@@ -79,12 +89,14 @@ function draw() {
   lineLayer.strokeWeight(10);
   // First point: preX, preY; Destination Point: curX, curY
   lineLayer.line(preX, preY, curX, curY);
-  image(lineLayer, 0, 0);
+  image(lineLayer, trueWidth, 0);
 
   // movingLayer
   movingLayer.clear();
   movingLayer.push();
   movingLayer.noStroke();
+  let localMouseX = mouseX - trueWidth;
+  let localMouseY = mouseY;
 
   // sparking cursor
   let controlledX;
@@ -92,9 +104,9 @@ function draw() {
   for (let i = 0; i < 12; i++) {
     let randomAngle = random(TWO_PI);
     let distance = random(0, 14);
-    controlledX = constrain(mouseX, curX, curX + 50);
+    controlledX = constrain(localMouseX, curX, curX + 50);
     let x = controlledX + cos(randomAngle) * distance + random(-1, 1);
-    let y = mouseY + sin(randomAngle) * distance + random(-1, 1);
+    let y = localMouseY + sin(randomAngle) * distance + random(-1, 1);
     let sizeSpark = random(1.5, 6);
     let alpha = random(100, 255); // the transparency
     movingLayer.fill(strokeR, random(180, 255), strokeB, alpha);
@@ -102,10 +114,10 @@ function draw() {
   }
   movingLayer.fill(strokeR, strokeG, strokeB, 255);
   // the main cursor
-  movingLayer.circle(controlledX, mouseY, 6);
+  movingLayer.circle(controlledX, localMouseY, 6);
   movingLayer.pop();
 
-  image(movingLayer, 0, 0);
+  image(movingLayer, trueWidth, 0);
 
   // Data changed each frame
 
@@ -116,8 +128,11 @@ function draw() {
   curX = baseLineEnd;
   // set vertical position for next point
 
-  if (curX > width) {
-    // reset positions
+  if (curX > trueWidth) {
+    // add what have been drawn to the previousFrameLayer
+    previousFrameLayer.clear();
+    previousFrameLayer.image(bgLayer, 0, 0);
+    previousFrameLayer.image(lineLayer, 0, 0);
     curX = 0;
     preX = 0;
     baseLineEnd = 0;
@@ -166,12 +181,12 @@ function bgMetadataInit(
   breathCCNum3 = random(breathCCNumStart, breathCCNumEnd);
 
   // make sure at least 4 CCs can appear in the canvas
-  breathCC_XCenter1 = random(4 * breathCCR1, width - 4 * breathCCR1);
-  breathCC_YCenter1 = random(4 * breathCCR1, height - 4 * breathCCR1);
+  breathCC_XCenter1 = random(4 * breathCCR1, trueWidth - 4 * breathCCR1);
+  breathCC_YCenter1 = random(4 * breathCCR1, trueHeight - 4 * breathCCR1);
 
   do {
-    breathCC_XCenter2 = random(4 * breathCCR2, width - 4 * breathCCR2);
-    breathCC_YCenter2 = random(4 * breathCCR2, height - 4 * breathCCR2);
+    breathCC_XCenter2 = random(4 * breathCCR2, trueWidth - 4 * breathCCR2);
+    breathCC_YCenter2 = random(4 * breathCCR2, trueHeight - 4 * breathCCR2);
   } while (
     dist(
       breathCC_XCenter1,
@@ -187,8 +202,8 @@ function bgMetadataInit(
   let tries = 0;
 
   do {
-    breathCC_XCenter3 = random(4 * breathCCR3, width - 4 * breathCCR3);
-    breathCC_YCenter3 = random(4 * breathCCR3, height - 4 * breathCCR3);
+    breathCC_XCenter3 = random(4 * breathCCR3, trueWidth - 4 * breathCCR3);
+    breathCC_YCenter3 = random(4 * breathCCR3, trueHeight - 4 * breathCCR3);
     tries++;
   } while (
     (dist(
@@ -251,8 +266,8 @@ function createBgColorAndWave(g = this, c1, c2, c3, c4) {
   g.strokeWeight(1);
 
   // width for each segment
-  const segW = width / (totalColorNum - 1);
-  for (let x = 0; x < width * 2; x++) {
+  const segW = trueWidth / (totalColorNum - 1);
+  for (let x = 0; x < trueWidth + 100; x++) {
     let seg = floor(constrain(x / segW, 0, totalColorNum - 2));
     let cRatio = (x - seg * segW) / segW;
     let tEase = (1 - cos(PI * cRatio)) / 2;
@@ -267,20 +282,20 @@ function createBgColorAndWave(g = this, c1, c2, c3, c4) {
     }
 
     g.stroke(curColor);
-    g.line(x, 0, x, height);
+    g.line(x, 0, x, trueHeight);
 
     // Since Waves
     g.fill(0, 30);
-    let angle1 = map(x, 0, width, PI / 3, TWO_PI * 2 + (0 * PI) / 3);
-    let y1 = height / 2 + sin(angle1) * amp1 - 200;
+    let angle1 = map(x, 0, trueWidth, PI / 3, TWO_PI * 2 + (0 * PI) / 3);
+    let y1 = trueHeight / 2 + sin(angle1) * amp1 - 200;
     g.circle(x, y1, backgroundBallR * 2);
 
-    let angle2 = map(x, 0, width, (2 * PI) / 3, TWO_PI * 2 + (1 * PI) / 3);
-    let y2 = height / 2 + sin(angle2) * amp2;
+    let angle2 = map(x, 0, trueWidth, (2 * PI) / 3, TWO_PI * 2 + (1 * PI) / 3);
+    let y2 = trueHeight / 2 + sin(angle2) * amp2;
     g.circle(x, y2, backgroundBallR * 2);
 
-    let angle3 = map(x, 0, width, (3 * PI) / 3, TWO_PI * 2 + (2 * PI) / 3);
-    let y3 = height / 2 + sin(angle3) * amp3 + 200;
+    let angle3 = map(x, 0, trueWidth, (3 * PI) / 3, TWO_PI * 2 + (2 * PI) / 3);
+    let y3 = trueHeight / 2 + sin(angle3) * amp3 + 200;
     g.circle(x, y3, backgroundBallR * 2);
   }
 
@@ -317,5 +332,7 @@ function create3CCSets(g = this) {
 
 // Line movement: keep mousePressed behavior
 function mousePressed() {
-  curY = mouseY;
+  if (mouseY > 0 && mouseY < trueHeight) {
+    curY = mouseY;
+  }
 }
