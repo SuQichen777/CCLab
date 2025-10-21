@@ -75,7 +75,6 @@ function draw() {
   // 0-trueWidth: previousFrameLayer
   image(previousFrameLayer, 0, 0);
   // trueWidth-2*trueWidth: bgLayer (and current layer)
-  image(previousFrameLayer, 0, 0);
   image(bgLayer, trueWidth, 0);
 
   // line layer
@@ -89,6 +88,14 @@ function draw() {
   lineLayer.strokeWeight(10);
   // First point: preX, preY; Destination Point: curX, curY
   lineLayer.line(preX, preY, curX, curY);
+
+  // Window
+  let windowWidth = 4;
+  let windowHeight = 6;
+  let ySpacing = windowHeight + 20; // vertical spacing between windows
+  let windowColor = color(255, 220, 100, 200); // lighter yellow
+  drawWindow(windowWidth, windowHeight, ySpacing, windowColor);
+
   image(lineLayer, trueWidth, 0);
 
   // movingLayer
@@ -334,5 +341,21 @@ function create3CCSets(g = this) {
 function mousePressed() {
   if (mouseY > 0 && mouseY < trueHeight) {
     curY = mouseY;
+  }
+}
+
+// Window
+function drawWindow(windowWidth, windowHeight, ySpacing, windowColor) {
+  for (let y = preY + 10; y < trueHeight - ySpacing; y += ySpacing) {
+    lineLayer.push();
+    if (random(1) < 0.03) {
+      // possibility of a window is 3%
+      lineLayer.fill(windowColor);
+      lineLayer.noStroke();
+      let x = preX + random(-5 - windowWidth, -5);
+      lineLayer.translate(x, y);
+      lineLayer.rect(0, 0, windowWidth, windowHeight);
+    }
+    lineLayer.pop();
   }
 }
