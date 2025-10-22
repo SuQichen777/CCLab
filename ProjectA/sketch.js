@@ -16,6 +16,7 @@ let breathCCNum1, breathCCNum2, breathCCNum3;
 let breathCCangleTotalNum;
 let breathCC_XCenter1, breathCC_XCenter2, breathCC_XCenter3;
 let breathCC_YCenter1, breathCC_YCenter2, breathCC_YCenter3;
+let bgColorDarkDegree = 0;
 
 // line
 let baseLine;
@@ -33,6 +34,8 @@ let windowColorOri;// lighter yellow
 // window color is expected to become lighter
 let windowColorLightDegree;
 let windowColor;
+let windowPossibility;
+
 function setup() {
   let canvas = createCanvas(trueWidth * 2, trueHeight);
   canvas.id("p5-canvas");
@@ -72,6 +75,7 @@ function setup() {
   windowColorOri = color(255, 220, 100, 200); // lighter yellow
   windowColorLightDegree = random(10, 30);
   windowColor = lerpColor(windowColorOri, color(255, 255, 255), windowColorLightDegree / 255);
+  windowPossibility = 0.03;
 }
 
 function draw() {
@@ -157,11 +161,13 @@ function draw() {
 
     // regenerate background (draw into bgLayer)
     bgLayer.clear();
-    let c1 = color(10, 133, 255); // Blue1
-    let c2 = color(0, 102, 204); // Blue2
-    let c3 = color(0, 30, 152); // Blue3
-    let c4 = color(0, 0, 112); // Blue4
-    let c5 = color(0, 0, 30); // Blue5
+    bgColorDarkDegree += random(0.1, 0.15)
+    // let c1 = color(10, 133, 255); // Blue1
+    let c1 = lerpColor(color(10, 133, 255), color(0), bgColorDarkDegree);
+    let c2 = lerpColor(color(0, 102, 204), color(0), bgColorDarkDegree);
+    let c3 = lerpColor(color(0, 30, 152), color(0), bgColorDarkDegree);
+    let c4 = lerpColor(color(0, 0, 112), color(0), bgColorDarkDegree);
+    let c5 = lerpColor(color(0, 0, 30), color(0), bgColorDarkDegree);
     bgMetadataInit(10, 25, 4, 10);
     createBgColorAndWave(bgLayer, c1, c4, c5, c3);
     create3CCSets(bgLayer);
@@ -353,6 +359,10 @@ function mousePressed() {
   if (mouseY > 0 && mouseY < trueHeight) {
     curY = mouseY;
     buildingTransparency = random(100, 255);
+    windowPossibility += random(0.001, 0.002);
+    if (windowPossibility > 0.05) {
+      windowPossibility = 0.05;
+    }
   }
 }
 
@@ -360,7 +370,7 @@ function mousePressed() {
 function drawWindow(windowWidth, windowHeight, ySpacing, windowColor) {
   for (let y = preY + 10; y < trueHeight - ySpacing; y += ySpacing) {
     lineLayer.push();
-    if (random(1) < 0.03) {
+    if (random(1) < windowPossibility) {
       // possibility of a window is 3%
       lineLayer.fill(windowColor);
       lineLayer.noStroke();
