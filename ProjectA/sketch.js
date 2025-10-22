@@ -28,8 +28,11 @@ let piColor;
 let r;
 
 // decoration
-let preClickX, preClickY;
-
+let buildingTransparency;
+let windowColorOri;// lighter yellow
+// window color is expected to become lighter
+let windowColorLightDegree;
+let windowColor;
 function setup() {
   let canvas = createCanvas(trueWidth * 2, trueHeight);
   canvas.id("p5-canvas");
@@ -65,9 +68,10 @@ function setup() {
   r = 25;
   lineLayer.clear();
 
-  // decoration
-  preClickX = 0;
-  preClickY = baseLine;
+  buildingTransparency = random(100, 200);
+  windowColorOri = color(255, 220, 100, 200); // lighter yellow
+  windowColorLightDegree = random(10, 30);
+  windowColor = lerpColor(windowColorOri, color(255, 255, 255), windowColorLightDegree / 255);
 }
 
 function draw() {
@@ -89,11 +93,15 @@ function draw() {
   // First point: preX, preY; Destination Point: curX, curY
   lineLayer.line(preX, preY, curX, curY);
 
+  // building
+  lineLayer.noStroke();
+  lineLayer.fill(0, 0, 0, buildingTransparency);
+  lineLayer.rect(curX, curY, 1, trueHeight - curY);
+
   // Window
   let windowWidth = 4;
   let windowHeight = 6;
   let ySpacing = windowHeight + 20; // vertical spacing between windows
-  let windowColor = color(255, 220, 100, 200); // lighter yellow
   drawWindow(windowWidth, windowHeight, ySpacing, windowColor);
 
   image(lineLayer, trueWidth, 0);
@@ -157,6 +165,9 @@ function draw() {
     bgMetadataInit(10, 25, 4, 10);
     createBgColorAndWave(bgLayer, c1, c4, c5, c3);
     create3CCSets(bgLayer);
+
+    windowColorLightDegree += random(30, 50);
+    windowColor = lerpColor(windowColorOri, color(255, 255, 255), windowColorLightDegree / 255);
 
     // clear the lineLayer if you want to restart trail
     lineLayer.clear();
@@ -341,6 +352,7 @@ function create3CCSets(g = this) {
 function mousePressed() {
   if (mouseY > 0 && mouseY < trueHeight) {
     curY = mouseY;
+    buildingTransparency = random(100, 255);
   }
 }
 
