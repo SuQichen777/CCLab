@@ -110,7 +110,7 @@ canvas {
 #p5-canvas-container {
   width: 1600px;
   margin-left: auto;
-  margin-right: 0;
+  margin-right: auto;
 }
 
 h2 {
