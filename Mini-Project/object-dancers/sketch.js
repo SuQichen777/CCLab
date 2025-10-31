@@ -18,7 +18,7 @@ function setup() {
   canvas.parent("p5-canvas-container");
 
   // ...except to adjust the dancer's name on the next line:
-  dancer = new YourNameDancer(width / 2, height / 2);
+  dancer = new Lulu(width / 2, height / 2);
 }
 
 function draw() {
@@ -32,21 +32,185 @@ function draw() {
 
 // You only code inside this class.
 // Start by giving the dancer your name, e.g. LeonDancer.
-class YourNameDancer {
+class Lulu {
   constructor(startX, startY) {
     this.x = startX;
     this.y = startY;
-    // add properties for your dancer here:
-    //..
-    //..
-    //..
+    this.bodyColor = "yellow";
+    this.orangeColor = "orange";
   }
   update() {
     // update properties here to achieve
     // your dancer's desired moves and behaviour
   }
+
+  // Head
+
+  drawOrange(orangePosX, orangePosY, orangeWidth, orangeHeight) {
+    push();
+    translate(orangePosX, orangePosY);
+    fill(this.orangeColor);
+    ellipse(0, 0, orangeWidth, orangeHeight);
+
+    push();
+    translate(0, -orangeHeight / 2);
+    fill("brown");
+    arc(0, 0, 2, 5, HALF_PI, 0, CHORD);
+    pop();
+
+    pop();
+  }
+
+  drawEyes(eyePosX, eyePosY, eyeRotation) {
+    push();
+
+    push();
+    translate(-eyePosX, eyePosY);
+    rotate(eyeRotation);
+    fill("white");
+    ellipse(0, 0, 15, 10);
+    fill("black");
+    circle(0.5, 1, 8);
+    pop();
+
+    push();
+    translate(eyePosX, eyePosY);
+    rotate(-eyeRotation);
+    fill("white");
+    ellipse(0, 0, 15, 10);
+    fill("black");
+    circle(-0.5, 1, 8);
+    pop();
+
+    pop();
+  }
+
+  drawEars(earPosX, earPosY, earRotation, earWidth, earHeight) {
+    push();
+
+    push();
+    translate(-earPosX, earPosY);
+    rotate(-earRotation);
+    fill(this.bodyColor);
+    ellipse(0, 0, earWidth, earHeight);
+    pop();
+
+    push();
+    translate(earPosX, earPosY);
+    rotate(earRotation);
+    fill(this.bodyColor);
+    ellipse(0, 0, earWidth, earHeight);
+    pop();
+
+    pop();
+  }
+
+  drawHead(headPosX, headPosY) {
+    push();
+
+    translate(headPosX, headPosY);
+    fill(this.bodyColor);
+    noStroke();
+    ellipse(0, 0, 80, 66);
+
+    // lower ellipse (nose and mouth)
+    push();
+    fill(this.orangeColor);
+    translate(0, 13);
+    ellipse(0, 0, 60, 40);
+    pop();
+
+    // eyes
+    this.drawEyes(20, -10, PI / 15);
+
+    // orange
+    this.drawOrange(0, -37, 15, 12);
+
+    // ears
+    this.drawEars(30, -20, PI / 9, 10, 15);
+
+    pop();
+  }
+
+  // Body
+
+  drawArm(armPosX, armPosY, armRotation, armWidth, armHeight) {
+    push();
+
+    // left
+    push();
+    translate(-armPosX, armPosY);
+    rotate(-armRotation);
+    fill(this.bodyColor);
+    ellipse(0, 0, armWidth, armHeight);
+    pop();
+
+    // right
+    push();
+    translate(armPosX, armPosY);
+    rotate(armRotation);
+    fill(this.bodyColor);
+    ellipse(0, 0, armWidth, armHeight);
+    pop();
+
+    pop();
+  }
+
+  drawBody(bodyCenterX, bodyCenterY) {
+    push();
+
+    noStroke();
+    rectMode(CENTER);
+    translate(bodyCenterX, bodyCenterY);
+
+    // arms
+    this.drawArm(30, 0, -PI/12, 16, 36);
+
+    // upper body
+    fill(this.bodyColor);
+    rect(0, 0, 60, 50);
+
+    // pants and feet
+    fill(this.orangeColor);
+
+    // left
+    push();
+    translate(-20, 30);
+    // foot
+    fill(this.bodyColor);
+    ellipse(0, 2, 20, 20);
+    // pant left
+    fill(this.orangeColor);
+    rect(0, 0, 20, 10);
+    pop();
+
+    // right
+    push();
+    translate(20, 30);
+    // foot
+    fill(this.bodyColor);
+    ellipse(0, 2, 20, 20);
+    // pant right
+    fill(this.orangeColor);
+    rect(0, 0, 20, 10);
+    pop();
+
+    // center pant
+    fill(this.orangeColor);
+    rect(0, 20, 60, 20);
+
+    pop();
+  }
+
+  drawDancer() {
+    push();
+    this.drawBody(0, -10);
+    this.drawHead(0, -50);
+
+    pop();
+  }
   display() {
-    // the push and pop, along with the translate 
+    // the push and pop, along with the translate
     // places your whole dancer object at this.x and this.y.
     // you may change its position on line 19 to see the effect.
     push();
@@ -54,11 +218,7 @@ class YourNameDancer {
 
     // ******** //
     // ⬇️ draw your dancer from here ⬇️
-
-
-
-
-
+    this.drawDancer();
 
     // ⬆️ draw your dancer above ⬆️
     // ******** //
@@ -66,10 +226,10 @@ class YourNameDancer {
     // the next function draws a SQUARE and CROSS
     // to indicate the approximate size and the center point
     // of your dancer.
-    // it is using "this" because this function, too, 
+    // it is using "this" because this function, too,
     // is a part if your Dancer object.
     // comment it out or delete it eventually.
-    this.drawReferenceShapes()
+    // this.drawReferenceShapes();
 
     pop();
   }
@@ -84,8 +244,6 @@ class YourNameDancer {
     stroke(0);
   }
 }
-
-
 
 /*
 GOAL:
