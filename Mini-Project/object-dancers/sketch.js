@@ -38,10 +38,26 @@ class Lulu {
     this.y = startY;
     this.bodyColor = "yellow";
     this.orangeColor = "orange";
+    this.orangePosY = -37;
+    this.orangeSpeed = -0.1;
+
+    this.angle = 0; // Current angle of rotation
+    this.wiggleSpeed = 0.2; // Speed of oscillation
+    this.wiggleAmount = PI / 30; // Maximum angle of rotation
   }
   update() {
     // update properties here to achieve
     // your dancer's desired moves and behaviour
+    let oscillation = sin(frameCount * this.wiggleSpeed);
+    this.angle = oscillation * this.wiggleAmount;
+
+    // this.orangeY go from -37 to -42 and then back
+    this.orangePosY += this.orangeSpeed
+    if (this.orangePosY <= -42 || this.orangePosY >= -37) {
+      this.orangeSpeed = -this.orangeSpeed;
+    }
+    console.log(this.orangePosY);
+    
   }
 
   // Head
@@ -108,6 +124,7 @@ class Lulu {
   drawHead(headPosX, headPosY) {
     push();
 
+    rotate(-this.angle);
     translate(headPosX, headPosY);
     fill(this.bodyColor);
     noStroke();
@@ -124,7 +141,7 @@ class Lulu {
     this.drawEyes(20, -10, PI / 15);
 
     // orange
-    this.drawOrange(0, -37, 15, 12);
+    this.drawOrange(0, this.orangePosY, 15, 12);
 
     // ears
     this.drawEars(30, -20, PI / 9, 10, 15);
@@ -164,11 +181,16 @@ class Lulu {
     translate(bodyCenterX, bodyCenterY);
 
     // arms
+    push();
+    rotate(this.angle);
     this.drawArm(30, 0, -PI/12, 16, 36);
+    pop();
 
     // upper body
+    push();
     fill(this.bodyColor);
-    rect(0, 0, 60, 50);
+    rect(0, 0, 54, 50);
+    pop();
 
     // pants and feet
     fill(this.orangeColor);
@@ -178,10 +200,10 @@ class Lulu {
     translate(-20, 30);
     // foot
     fill(this.bodyColor);
-    ellipse(0, 2, 20, 20);
+    ellipse(0, 2, 22, 20);
     // pant left
     fill(this.orangeColor);
-    rect(0, 0, 20, 10);
+    rect(0, 0, 22, 10);
     pop();
 
     // right
@@ -189,22 +211,33 @@ class Lulu {
     translate(20, 30);
     // foot
     fill(this.bodyColor);
-    ellipse(0, 2, 20, 20);
+    ellipse(0, 2, 22, 20);
     // pant right
+    push();
+    // rotate(this.angle);
     fill(this.orangeColor);
-    rect(0, 0, 20, 10);
+    rect(0, 0, 22, 10);
+    pop();
     pop();
 
     // center pant
+    push();
+    rotate(this.angle);
     fill(this.orangeColor);
     rect(0, 20, 60, 20);
+    pop();
 
     pop();
   }
 
   drawDancer() {
     push();
+
+    push();
+    // rotate(this.angle);
     this.drawBody(0, -10);
+    pop();
+
     this.drawHead(0, -50);
 
     pop();
@@ -215,6 +248,7 @@ class Lulu {
     // you may change its position on line 19 to see the effect.
     push();
     translate(this.x, this.y);
+    
 
     // ******** //
     // ⬇️ draw your dancer from here ⬇️
