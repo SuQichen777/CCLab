@@ -10,4 +10,4 @@ There are 2 projects in Creative Coding Lab.
 
 ## Mini Projects
 ### Mini Project 8 - Object dancers: Lulu
-[Github Page](https://suqichen777.github.io/CCLab/Mini-Project/object-dancers/) and [blog post](ttps://sites.google.com/nyu.edu/ameliasimasite/cclab/8-r-object-dancers)
+[Github Page](https://suqichen777.github.io/CCLab/Mini-Project/object-dancers/) and [blog post](https://sites.google.com/nyu.edu/ameliasimasite/cclab/8-r-object-dancers)
