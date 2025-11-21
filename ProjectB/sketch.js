@@ -93,9 +93,10 @@ function draw() {
   // but the content in the environment is changed
   image(envLayer, 0, 0);
   handLayer.clear();
-  // leftHand.update(0);
+  leftHand.update(0);
   leftHand.display(handLayer);
-  image(handLayer, 0, height/2);
+  // place hand layer at bottom-left of the main canvas
+  image(handLayer, 0, height - handLayer.height);
   if (currentScrollingPosition > scenes[scenes.length - 1].end){
     currentScrollingPosition = scenes[scenes.length - 1].end;
   }
@@ -188,9 +189,9 @@ function handLayerInitialize() {
   // x1, y1, x2, y2, color, bottomXLeft, bottomXRight
   leftHand = new Hand(
     2 * handLayer.width / 5,
-    4 * handLayer.height / 5,
+    handLayer.height / 5,
     4 * handLayer.width / 5,
-    3 * handLayer.height / 5,
+    2 * handLayer.height / 5,
     color(255),
     handLayer.width / 5,
     3 * handLayer.width / 5,
@@ -561,21 +562,20 @@ class Hand {
   update(mode) {
     // mode 0: normal mode
     if (mode == 0) {
-      this.rotation = (frameCount * 0.01) % 15;
+      this.rotation = sin((frameCount * 0.03)) * 5;
     }
   }
 
   display(layer) {
     layer.push();
     layer.angleMode(DEGREES);
-    // layer.rotate(this.rotation);
-    beginShape();
-    vertex(this.bottomXLeft, 0);
-    vertex(this.x1, this.y1);
-    vertex(this.x2, this.y2);
-    vertex(this.bottomXRight, 0);
-    endShape(CLOSE);
-
+    layer.rotate(this.rotation);
+    layer.beginShape();
+    layer.vertex(this.bottomXLeft, layer.height);
+    layer.vertex(this.x1, this.y1);
+    layer.vertex(this.x2, this.y2);
+    layer.vertex(this.bottomXRight, layer.height);
+    layer.endShape(CLOSE);
     layer.pop();
   }
 }
