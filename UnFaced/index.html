@@ -1,37 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>(Un)Faced</title>
 
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="style.css" />
 
-  <title>Particle World</title>
+    <script src="lib/p5.js"></script>
+    <script src="lib/p5.sound.js"></script>
 
-  <link rel="stylesheet" type="text/css" href="style.css">
+    <!-- Alternatively, you can import the library via CDN (Content Delivery Network). -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/p5.js"></script> -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/addons/p5.sound.js"></script> -->
+  </head>
 
-  <script src="lib/p5.js"></script>
-  <script src="lib/p5.sound.js"></script>
-
-  <!-- Alternatively, you can import the library via CDN (Content Delivery Network). -->
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/p5.js"></script> -->
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/addons/p5.sound.js"></script> -->
-</head>
-
-<body>
-
-  <div class="main-wrapper">
-    <h1>Autumn Drizzle</h1>
-
+  <body>
     <!-- the following div will contain the p5 canvas. -->
-    <div id="p5-canvas-container">
-      <!-- p5 canvas will be appended here. -->
-    </div>
+    <div class="canvas-container" id="p5-canvas-container"></div>
+    <div id="main-container"></div>
 
-    <p>Use your mouse to blow a wind on the leaves.</p>
-  </div>
-
-  <!-- the script tag below should always be at the bottom, right before the closing body tag -->
-  <script src="sketch.js"></script>
-</body>
-
+    <!-- the script tag below should always be at the bottom, right before the closing body tag -->
+    <script src="sketch.js"></script>
+  </body>
 </html>
