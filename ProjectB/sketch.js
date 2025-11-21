@@ -6,7 +6,9 @@ let scrollingMaxSpd = 5;
 let scene1Start, scene1End; // 0, 1000
 let scene2Start, scene2End; // 1000, 2000
 let scene3Start, scene3End; // 2000, 2500
+let scene4Start, scene4End; // 2500, 3000
 let scenes = [];
+let scene
 
 // All Layers
 let maskLayer, envLayer, handLayer;
@@ -53,7 +55,7 @@ function setup() {
   let canvas = createCanvas(500, 300);
   maskLayer = createGraphics(width, height);
   envLayer = createGraphics(width, height);
-  handLayer = createGraphics(width/2, height/2);
+  handLayer = createGraphics(width / 2, height / 2);
 
   // global variables
   currentScrollingPosition = 0;
@@ -64,6 +66,8 @@ function setup() {
   scene2End = 2000;
   scene3Start = 2000;
   scene3End = 2500;
+  scene4Start = 2500;
+  scene4End = 3000;
   scenes = [
     new Scene(Number.NEGATIVE_INFINITY, scene1Start, () => {
       image(maskLayer, 0, 0);
@@ -71,6 +75,7 @@ function setup() {
     new Scene(scene1Start, scene1End, scene1),
     new Scene(scene2Start, scene2End, scene2),
     new Scene(scene3Start, scene3End, scene3),
+    new Scene(scene4Start, scene4End, scene4),
   ];
 
   // env layer
@@ -97,7 +102,7 @@ function draw() {
   leftHand.display(handLayer);
   // place hand layer at bottom-left of the main canvas
   image(handLayer, 0, height - handLayer.height);
-  if (currentScrollingPosition > scenes[scenes.length - 1].end){
+  if (currentScrollingPosition > scenes[scenes.length - 1].end) {
     currentScrollingPosition = scenes[scenes.length - 1].end;
   }
   let activeScene = scenes.find((scene) =>
@@ -155,19 +160,30 @@ function scene3() {
   s1WallLineDownRight.display(envLayer);
   s1WallLineUpLeft.display(envLayer);
   s1WallLineDownLeft.display(envLayer);
-  s3DoorOffsetX = s1NoisyRect.width * s3DoorOffsetRatioX;
-  s3DoorOffsetY = s1NoisyRect.height * s3DoorOffsetRatioY;
   s3Door.updateTransparency(3);
   s3Door.display(envLayer);
+  envLayer.noStroke();
+  // red door presser
+  if (currentScrollingPosition >= scenes[3].end - 50) {
+    envLayer.stroke(0);
+    envLayer.fill(255, 0, 0);
+    envLayer.circle(s3Door.centerX - s3Door.width / 4, s3Door.centerY, 10);
+  }
+}
+
+function scene4(){
+  
 }
 
 function mouseWheel(event) {
-  let mouseScrollingExtent = constrain(
-    event.delta,
-    -scrollingMaxSpd,
-    scrollingMaxSpd
-  );
-  currentScrollingPosition += mouseScrollingExtent;
+  if (leftHand.currentMode != 1) {
+    let mouseScrollingExtent = constrain(
+      event.delta,
+      -scrollingMaxSpd,
+      scrollingMaxSpd
+    );
+    currentScrollingPosition += mouseScrollingExtent;
+  }
 }
 
 // Environment
@@ -188,14 +204,14 @@ function handLayerInitialize() {
   // handLayer.noStroke()
   // x1, y1, x2, y2, color, bottomXLeft, bottomXRight
   leftHand = new Hand(
-    2 * handLayer.width / 5,
+    (2 * handLayer.width) / 5,
     handLayer.height / 5,
-    4 * handLayer.width / 5,
-    2 * handLayer.height / 5,
+    (4 * handLayer.width) / 5,
+    (2 * handLayer.height) / 5,
     color(255),
     handLayer.width / 5,
-    3 * handLayer.width / 5,
-  )
+    (3 * handLayer.width) / 5
+  );
   leftHand.display(handLayer);
 }
 
@@ -557,12 +573,15 @@ class Hand {
     this.bottomXLeft = bottomXLeft;
     this.bottomXRight = bottomXRight;
     this.rotation = 0;
+    this.currentMode = 0;
   }
 
-  update(mode) {
+  update(mode, mode1TargetX, mode1TargetY, mode1Duration) {
     // mode 0: normal mode
     if (mode == 0) {
-      this.rotation = sin((frameCount * 0.03)) * 5;
+      this.rotation = sin(frameCount * 0.03) * 5;
+    } else if (mode == 1) {
+      // change end (x1, y1) - (x2, y2) to reach Target
     }
   }
 
@@ -571,10 +590,10 @@ class Hand {
     layer.angleMode(DEGREES);
     layer.rotate(this.rotation);
     layer.beginShape();
-    layer.vertex(this.bottomXLeft, layer.height);
+    layer.vertex(this.bottomXLeft, layer.height * 2);
     layer.vertex(this.x1, this.y1);
     layer.vertex(this.x2, this.y2);
-    layer.vertex(this.bottomXRight, layer.height);
+    layer.vertex(this.bottomXRight, layer.height * 2);
     layer.endShape(CLOSE);
     layer.pop();
   }
