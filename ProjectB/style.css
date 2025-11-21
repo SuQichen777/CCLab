@@ -2,14 +2,43 @@ html,
 body {
   margin: 0;
   padding: 0;
+  height: 100%;
 }
 
 canvas {
   display: block;
 }
 
-.main-wrapper {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 50px 0;
+#p5-canvas-container {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+}
+
+.canvas-container {
+  width: 100%;
+  /* height: 300px; */
+  background-color: rgb(240, 148, 168);
+}
+
+.canvas-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+
+#main-container {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0px;
+  top: 0px;
+}
+
+/* Prevent rubber-band/overscroll showing browser background */
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: #000;
 }
