@@ -35,7 +35,7 @@ export class Mask {
       scene.start,
       scene.end,
       this.startX,
-      this.startX + 50
+      this.startX + (50 / 500) * width
     );
   }
 

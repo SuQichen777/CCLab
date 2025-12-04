@@ -34,8 +34,8 @@ export function scene1() {
 export function scene2() {
   envLayer.clear();
   envLayer.background(255);
-  let finalWidth = 225;
-  let finalHeight = 150;
+  let finalWidth = (225 / 500) * width;
+  let finalHeight = (150 / 300) * height;
   s1NoisyRect.updateSize(finalWidth, finalHeight, 2);
   s1NoisyRect.display(envLayer);
   s1WallLineUpLeft.endX = s1NoisyRect.topLine.startX;
@@ -46,8 +46,8 @@ export function scene2() {
   s1WallLineUpRight.endY = s1NoisyRect.topLine.endY;
   s1WallLineDownRight.endX = s1NoisyRect.bottomLine.endX;
   s1WallLineDownRight.endY = s1NoisyRect.bottomLine.endY;
-  let doorFinalWidth = 50;
-  let doorFinalHeight = 100;
+  let doorFinalWidth = (50 / 500) * width;
+  let doorFinalHeight = (100 / 300) * height;
   let s3DoorOffsetX = s1NoisyRect.width * s3DoorOffsetRatioX;
   let s3DoorOffsetY = s1NoisyRect.height * s3DoorOffsetRatioY;
   s3Door.updateSize(doorFinalWidth, doorFinalHeight, 2);
@@ -77,7 +77,11 @@ export function scene3() {
   if (state.currentScrollingPosition >= state.scenes[3].end - 50) {
     envLayer.stroke(0);
     envLayer.fill(255, 0, 0);
-    envLayer.circle(s3Door.centerX - s3Door.width / 4, s3Door.centerY, 10);
+    envLayer.circle(
+      s3Door.centerX - s3Door.width / 4,
+      s3Door.centerY,
+      (10 / 500) * width
+    );
   }
 }
 
