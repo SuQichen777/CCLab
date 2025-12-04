@@ -1,3 +1,6 @@
+import { state } from "../state.js";
+import { sceneBounds } from "../constants.js";
+
 export class Mask {
   constructor(startX, startY, maskSize, eyeSize, maskColor = color(0)) {
     this.startX = startX;
@@ -10,30 +13,30 @@ export class Mask {
     this.maskColor = maskColor;
   }
 
-  update(scene) {
-    if (scene == 1) {
-      this.rotation = map(
-        currentScrollingPosition,
-        scenes[scene].start,
-        scenes[scene].end,
-        0,
-        30
-      );
-      this.y = map(
-        currentScrollingPosition,
-        scenes[scene].start,
-        scenes[scene].end,
-        this.startY,
-        2 * height
-      );
-      this.x = map(
-        currentScrollingPosition,
-        scenes[scene].start,
-        scenes[scene].end,
-        this.startX,
-        this.startX + 50
-      );
-    }
+  update(sceneIndex) {
+    let scene = sceneBounds[sceneIndex];
+    if (!scene) return;
+    this.rotation = map(
+      state.currentScrollingPosition,
+      scene.start,
+      scene.end,
+      0,
+      30
+    );
+    this.y = map(
+      state.currentScrollingPosition,
+      scene.start,
+      scene.end,
+      this.startY,
+      2 * height
+    );
+    this.x = map(
+      state.currentScrollingPosition,
+      scene.start,
+      scene.end,
+      this.startX,
+      this.startX + 50
+    );
   }
 
   display(maskLayer) {

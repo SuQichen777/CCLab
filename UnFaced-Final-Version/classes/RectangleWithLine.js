@@ -1,4 +1,7 @@
 import { Line } from "./Line.js";
+import { state } from "../state.js";
+import { sceneBounds } from "../constants.js";
+
 export class RectangleWithLine {
   constructor(centerX, centerY, width, height, color, noiseStrength = 30) {
     this.centerX = centerX;
@@ -45,21 +48,20 @@ export class RectangleWithLine {
     );
   }
 
-  updateSize(finalWidth, finalHeight, scene) {
-    let scrollStart, scrollEnd;
-    scrollStart = scenes[scene].start;
-    scrollEnd = scenes[scene].end;
+  updateSize(finalWidth, finalHeight, sceneIndex) {
+    let scene = sceneBounds[sceneIndex];
+    if (!scene) return;
     let newWidth = map(
-      currentScrollingPosition,
-      scrollStart,
-      scrollEnd,
+      state.currentScrollingPosition,
+      scene.start,
+      scene.end,
       this.originalWidth,
       finalWidth
     );
     let newHeight = map(
-      currentScrollingPosition,
-      scrollStart,
-      scrollEnd,
+      state.currentScrollingPosition,
+      scene.start,
+      scene.end,
       this.originalHeight,
       finalHeight
     );
@@ -86,14 +88,13 @@ export class RectangleWithLine {
     this.bottomLine.endY = this.centerY + newHeight / 2;
   }
 
-  updateTransparency(scene) {
-    let scrollStart, scrollEnd;
-    scrollStart = scenes[scene].start;
-    scrollEnd = scenes[scene].end;
+  updateTransparency(sceneIndex) {
+    let scene = sceneBounds[sceneIndex];
+    if (!scene) return;
     let newTransparency = map(
-      currentScrollingPosition,
-      scrollStart,
-      scrollEnd,
+      state.currentScrollingPosition,
+      scene.start,
+      scene.end,
       20,
       255
     );
@@ -103,21 +104,20 @@ export class RectangleWithLine {
     this.leftLine.lineColor.setAlpha(newTransparency);
   }
 
-  updatePosition(newCenterX, newCenterY, scene) {
-    let scrollStart, scrollEnd;
-    scrollStart = scenes[scene].start;
-    scrollEnd = scenes[scene].end;
+  updatePosition(newCenterX, newCenterY, sceneIndex) {
+    let scene = sceneBounds[sceneIndex];
+    if (!scene) return;
     let mappedCenterX = map(
-      currentScrollingPosition,
-      scrollStart,
-      scrollEnd,
+      state.currentScrollingPosition,
+      scene.start,
+      scene.end,
       this.originalCenterX,
       newCenterX
     );
     let mappedCenterY = map(
-      currentScrollingPosition,
-      scrollStart,
-      scrollEnd,
+      state.currentScrollingPosition,
+      scene.start,
+      scene.end,
       this.originalCenterY,
       newCenterY
     );
