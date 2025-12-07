@@ -1,4 +1,5 @@
 import { state } from "./state.js";
+import { sceneBounds } from "./constants.js";
 import {
   envLayer,
   maskLayer,
@@ -18,6 +19,7 @@ import {
   characterWe,
   characterWe2,
 } from "./layers.js";
+import { handlePlayerEnemyCollision } from "./classes/Character.js";
 
 export class Scene {
   constructor(start, end, render) {
@@ -96,17 +98,36 @@ export function sceneEscape() {
   // The process of constraining mouseScrollingExtent
   // and the update of player
   // are all done in the sketch.js: mouseWheel function
-  labyrinthLayer.background(255);
+  
   if (!labyrinthWalls.length) {
     labyrinthLayerInitialize();
   }
+  characterWe.updateAuto(1, 0, labyrinthWalls);
+  characterWe2.updateAuto(1, 0, labyrinthWalls);
+  // const cbFunc = labyrinthLayerInitialize;
+  const cbFunc = () => {
+    labyrinthLayerInitialize;
+    state.currentScrollingPosition = sceneBounds[2].end - 100;
+  }
+  if (
+    handlePlayerEnemyCollision(characterMe, characterWe, cbFunc) ||
+    handlePlayerEnemyCollision(characterMe, characterWe2, cbFunc)
+  ) {
+    return;
+  }
+
+  labyrinthLayer.background(255);
   for (let i = 0; i < labyrinthWalls.length; i++) {
     labyrinthWalls[i].display(labyrinthLayer);
   }
+  const startCol = color(255, 200, 200, 40); // very light red at entrance
+  const endCol = color(255, 0, 0); // full red at exit (top)
+  const t = constrain(map(characterMe.y, height, 0, 0, 1), 0, 1);
+  characterMe.fillColor = lerpColor(startCol, endCol, t);
   characterMe.display(labyrinthLayer);
-  characterWe.updateAuto(1, 0, labyrinthWalls);
+  
   characterWe.display(labyrinthLayer);
-  characterWe2.updateAuto(1, 0, labyrinthWalls);
+  
   characterWe2.display(labyrinthLayer);
   image(labyrinthLayer, 0, 0);
 }

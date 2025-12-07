@@ -15,3 +15,6 @@
 3) Implement the scene render function in `scenes.js` (read/update exported layer instances and `state`).
 4) Register the new scene in `sketch.js` by pushing a `Scene` instance into `state.scenes`, using the bounds from `constants.js` and your render function.
 5) Run and verify that `draw` picks up the scene at the expected scroll range.
+
+## TODO:
+Change `state.currentScrollingPosition = sceneBounds[2].end - 100;`into the real reset scene in `sketch.js` and `scenes.js`

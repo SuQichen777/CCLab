@@ -13,6 +13,8 @@ import {
   maskLayer,
   handLayer,
   leftHand,
+  characterMe,
+  labyrinthWalls,
 } from "./layers.js";
 import {
   Scene,
@@ -177,7 +179,21 @@ function mouseWheel(event) {
       -scrollingMaxSpd,
       scrollingMaxSpd
     );
-    state.currentScrollingPosition += mouseScrollingExtent;
+    let activeScene = state.scenes.find((scene) =>
+      scene.contains(state.currentScrollingPosition)
+    );
+    if (activeScene.render != sceneEscape) {
+      state.currentScrollingPosition += mouseScrollingExtent;
+    } else {
+      let dx = constrain(-event.deltaX, -0.6, 0.6);
+      let dy = constrain(-event.deltaY, -0.6, 0.6);
+      characterMe.update(dx, dy, labyrinthWalls);
+      if (characterMe.y < 0){
+        // next scene
+      } else if (characterMe.y > 575) {
+        state.currentScrollingPosition = sceneBounds[2].end - 100;
+      }
+    }
   }
 }
 
