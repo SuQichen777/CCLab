@@ -152,6 +152,11 @@ function mouseWheel(event) {
 function mousePressed() {
   if (!state.storyStarted) {
     isFaceFrozen = true;
+    // calculate size
+    let maskSizeWidth = face[0].keypoints[366] - face[0].keypoints[137];
+    let maskSizeHeight = face[0].keypoints[152] - face[0].keypoints[10];
+    let maskStartX = face[0].keypoints[4].x;
+    let maskStartY = face[0].keypoints[4].y;
     frozenFaces = faces.map((face) => {
       return {
         ...face,

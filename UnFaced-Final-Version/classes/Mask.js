@@ -2,12 +2,14 @@ import { state } from "../state.js";
 import { sceneBounds } from "../constants.js";
 
 export class Mask {
-  constructor(startX, startY, maskSize, eyeSize, maskColor = color(0)) {
+  constructor(startX, startY, maskSizeWidth, maskSizeHeight, eyeSize, maskColor = color(0)) {
     this.startX = startX;
     this.startY = startY;
     this.x = startX;
     this.y = startY;
-    this.maskSize = maskSize;
+    this.maskSizeWidth = maskSizeWidth;
+    this.maskSizeHeight = maskSizeHeight;
+    // this.maskSize = maskSizeWidth;
     this.eyeSize = eyeSize;
     this.rotation = 0;
     this.maskColor = maskColor;
@@ -45,10 +47,10 @@ export class Mask {
     maskLayer.fill(this.maskColor);
     maskLayer.translate(this.x, this.y);
     maskLayer.rotate(this.rotation);
-    maskLayer.circle(0, 0, this.maskSize);
+    maskLayer.ellipse(0, 0, this.maskSizeWidth, this.maskSizeHeight);
     maskLayer.erase();
-    maskLayer.circle(-this.maskSize / 4, -this.maskSize / 8, this.eyeSize);
-    maskLayer.circle(this.maskSize / 4, -this.maskSize / 8, this.eyeSize);
+    maskLayer.circle(-this.maskSizeWidth / 4, -this.maskSizeHeight / 8, this.eyeSize);
+    maskLayer.circle(this.maskSizeWidth / 4, -this.maskSizeHeight / 8, this.eyeSize);
     maskLayer.noErase();
     maskLayer.pop();
   }
