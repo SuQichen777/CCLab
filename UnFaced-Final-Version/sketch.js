@@ -14,7 +14,14 @@ import {
   handLayer,
   leftHand,
 } from "./layers.js";
-import { Scene, scene1, scene2, scene3, scene4 } from "./scenes.js";
+import {
+  Scene,
+  scene1,
+  scene2,
+  scene3,
+  scene4,
+  sceneEscape,
+} from "./scenes.js";
 
 // export const state = {
 //   storyStarted: false,
@@ -31,6 +38,7 @@ let faceMesh,
   isFaceFrozen = false,
   options = defaultPageOptions,
   frozenCircleRadius = 2,
+  clickMask = null,
   randomChar = [
     "a",
     "b",
@@ -70,6 +78,7 @@ function setup() {
     new Scene(sceneBounds[2].start, sceneBounds[2].end, scene2),
     new Scene(sceneBounds[3].start, sceneBounds[3].end, scene3),
     new Scene(sceneBounds[4].start, sceneBounds[4].end, scene4),
+    new Scene(sceneBounds[5].start, sceneBounds[5].end, sceneEscape),
   ];
   envLayerInitialize();
   maskLayerInitialize();
@@ -81,26 +90,31 @@ function setup() {
 function draw() {
   if (state.storyStarted) {
     background(0);
-    image(envLayer, 0, 0);
-    handLayer.clear();
-    leftHand.update(0);
-    leftHand.display(handLayer);
-    image(handLayer, 0, height - handLayer.height);
+    let activeScene = state.scenes.find((scene) =>
+      scene.contains(state.currentScrollingPosition)
+    );
+    if (activeScene.render != sceneEscape) {
+      
+      image(envLayer, 0, 0);
+      handLayer.clear();
+      leftHand.update(0);
+      leftHand.display(handLayer);
+      image(handLayer, 0, height - handLayer.height);
+    }
+
     if (
       state.currentScrollingPosition > state.scenes[state.scenes.length - 1].end
     ) {
       state.currentScrollingPosition =
         state.scenes[state.scenes.length - 1].end;
     }
-    let activeScene = state.scenes.find((scene) =>
-      scene.contains(state.currentScrollingPosition)
-    );
+
     if (activeScene) {
       activeScene.render();
     }
   } else {
     // click to start
-    defaultPage();
+    // defaultPage();
   }
 }
 
@@ -135,6 +149,24 @@ function defaultPage() {
       }
     }
   }
+  if (clickMask) {
+    noStroke();
+    fill(0);
+    ellipse(clickMask.x, clickMask.y, clickMask.w, clickMask.h);
+    erase();
+    const eyeSize = min(clickMask.w, clickMask.h) / 3;
+    ellipse(
+      clickMask.x - clickMask.w / 4,
+      clickMask.y - clickMask.h / 8,
+      eyeSize
+    );
+    ellipse(
+      clickMask.x + clickMask.w / 4,
+      clickMask.y - clickMask.h / 8,
+      eyeSize
+    );
+    noErase();
+  }
   pop();
 }
 
@@ -150,20 +182,24 @@ function mouseWheel(event) {
 }
 
 function mousePressed() {
+  state.storyStarted = true;
   if (!state.storyStarted) {
-    isFaceFrozen = true;
-    // calculate size
-    let maskSizeWidth = face[0].keypoints[366] - face[0].keypoints[137];
-    let maskSizeHeight = face[0].keypoints[152] - face[0].keypoints[10];
-    let maskStartX = face[0].keypoints[4].x;
-    let maskStartY = face[0].keypoints[4].y;
-    frozenFaces = faces.map((face) => {
-      return {
-        ...face,
-        keypoints: face.keypoints.map((kp) => ({ ...kp })),
-      };
-    });
-    // state.storyStarted = true;
+    if (!faces.length || faces[0].keypoints.length <= 366) return;
+    const primaryFace = faces[0];
+    const maskSizeWidth = Math.abs(
+      primaryFace.keypoints[366].x - primaryFace.keypoints[137].x
+    );
+    const maskSizeHeight = Math.abs(
+      primaryFace.keypoints[152].y - primaryFace.keypoints[10].y
+    );
+    const maskStartX = primaryFace.keypoints[4].x;
+    const maskStartY = primaryFace.keypoints[4].y;
+    clickMask = {
+      x: maskStartX,
+      y: maskStartY,
+      w: maskSizeWidth,
+      h: maskSizeHeight,
+    };
   }
 }
 

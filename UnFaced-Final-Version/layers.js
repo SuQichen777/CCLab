@@ -2,8 +2,10 @@ import { Mask } from "./classes/Mask.js";
 import { Hand } from "./classes/Hand.js";
 import { Line } from "./classes/Line.js";
 import { RectangleWithLine } from "./classes/RectangleWithLine.js";
+import { Wall } from "./classes/Wall.js";
+import { Player, Enemy } from "./classes/Character.js";
 
-export let maskLayer, envLayer, handLayer;
+export let maskLayer, envLayer, handLayer, labyrinthLayer;
 export let s1NoisyRect,
   s1WallLineUpLeft,
   s1WallLineUpRight,
@@ -12,11 +14,13 @@ export let s1NoisyRect,
 export let s3Door, s3DoorOffsetRatioX, s3DoorOffsetRatioY;
 export let mask;
 export let leftHand;
+export let characterMe, characterWe, characterWe2, labyrinthWalls = [];
 
 export function createLayers(mainWidth, mainHeight) {
   maskLayer = createGraphics(mainWidth, mainHeight);
   envLayer = createGraphics(mainWidth, mainHeight);
   handLayer = createGraphics(mainWidth / 2, mainHeight / 2);
+  labyrinthLayer = createGraphics(mainWidth, mainHeight);
 }
 
 export function handLayerInitialize() {
@@ -116,3 +120,90 @@ export function maskLayerInitialize() {
   );
   mask.display(maskLayer);
 }
+
+export function labyrinthLayerInitialize() {
+  labyrinthLayer.background(255);
+  labyrinthWalls = [];
+  let rowHeight = 50;
+  let rows = [
+    // row 0
+    [
+      [0, 900],
+      [950, 50],
+    ],
+    // row 1
+    [
+      [0, 50],
+      [950, 50],
+    ],
+    // row 2
+    [
+      [0, 50],
+      [100, 900],
+    ],
+    // row 3
+    [
+      [0, 50],
+      [950, 50],
+    ],
+    // row 4
+    [
+      [0, 580],
+      [630, 270],
+      [950, 50],
+    ],
+    // row 5
+    [
+      [0, 50],
+      [950, 50],
+    ],
+    // row 6
+    [
+      [0, 50],
+      [100, 900],
+    ],
+    // row 7
+    [
+      [0, 50],
+      [950, 50],
+    ],
+    // row 8
+    [
+      [0, 750],
+      [800, 100],
+      [950, 50],
+    ],
+    // row 9
+    [
+      [0, 50],
+      [950, 50],
+    ],
+    // row 10
+    [
+      [0, 50],
+      [100, 1000],
+    ],
+  ];
+  for (let r = 0; r < rows.length; r++) {
+    let y = r * rowHeight;
+    for (let segment of rows[r]) {
+      const left = segment[0];
+      const w = segment[1];
+
+      const topRightX = left + w;
+      const topRightY = y;
+      const h = rowHeight;
+
+      labyrinthWalls.push(new Wall(topRightX, topRightY, w, h, color(0)));
+    }
+  }
+  characterMe = new Player(75, 525);
+  for (let i = 0; i < labyrinthWalls.length; i++) {
+    labyrinthWalls[i].display(labyrinthLayer);
+  }
+  characterWe = new Enemy(75, 175);
+  characterWe2 = new Enemy(775, 375);
+  characterMe.display(labyrinthLayer);
+  characterWe.display(labyrinthLayer);
+  characterWe2.display(labyrinthLayer);
+};

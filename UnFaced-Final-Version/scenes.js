@@ -2,6 +2,7 @@ import { state } from "./state.js";
 import {
   envLayer,
   maskLayer,
+  labyrinthLayer,
   s1NoisyRect,
   s1WallLineUpLeft,
   s1WallLineUpRight,
@@ -11,6 +12,11 @@ import {
   s3DoorOffsetRatioX,
   s3DoorOffsetRatioY,
   mask,
+  labyrinthWalls,
+  labyrinthLayerInitialize,
+  characterMe,
+  characterWe,
+  characterWe2,
 } from "./layers.js";
 
 export class Scene {
@@ -86,3 +92,16 @@ export function scene3() {
 }
 
 export function scene4() {}
+export function sceneEscape() {
+  labyrinthLayer.background(255);
+  if (!labyrinthWalls.length) {
+    labyrinthLayerInitialize();
+  }
+  for (let i = 0; i < labyrinthWalls.length; i++) {
+    labyrinthWalls[i].display(labyrinthLayer);
+  }
+  characterMe.display(labyrinthLayer);
+  characterWe.display(labyrinthLayer);
+  characterWe2.display(labyrinthLayer);
+  image(labyrinthLayer, 0, 0);
+}
