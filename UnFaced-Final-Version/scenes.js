@@ -93,6 +93,9 @@ export function scene3() {
 
 export function scene4() {}
 export function sceneEscape() {
+  // The process of constraining mouseScrollingExtent
+  // and the update of player
+  // are all done in the sketch.js: mouseWheel function
   labyrinthLayer.background(255);
   if (!labyrinthWalls.length) {
     labyrinthLayerInitialize();
@@ -101,7 +104,9 @@ export function sceneEscape() {
     labyrinthWalls[i].display(labyrinthLayer);
   }
   characterMe.display(labyrinthLayer);
+  characterWe.updateAuto(1, 0, labyrinthWalls);
   characterWe.display(labyrinthLayer);
+  characterWe2.updateAuto(1, 0, labyrinthWalls);
   characterWe2.display(labyrinthLayer);
   image(labyrinthLayer, 0, 0);
 }
