@@ -171,8 +171,8 @@ export function sceneEscape() {
   characterWe2.updateAuto(1, 0, labyrinthWalls);
   // const cbFunc = labyrinthLayerInitialize;
   const cbFunc = () => {
-    labyrinthLayerInitialize;
-    state.currentScrollingPosition = sceneBounds[2].end - 100;
+    labyrinthLayerInitialize();
+    state.currentScrollingPosition = sceneBounds[4].end - 100;
   };
   if (
     handlePlayerEnemyCollision(characterMe, characterWe, cbFunc) ||
@@ -300,11 +300,11 @@ export class Transition {
       // state.currentScrollingPosition = sceneBounds[1].start;
       state.currentScrollingPosition = sceneBounds[4].start;
     } else if (this.transitionCode == 2) {
-      // state.currentScrollingPosition = sceneBounds[1].start;
+      // placeholder for future chapter start after sceneEscape
     } else if (this.transitionCode == 3) {
-      // state.currentScrollingPosition = sceneBounds[1].start;
+      // placeholder
     } else if (this.transitionCode == 4) {
-      // state.currentScrollingPosition = sceneBounds[1].start;
+      // placeholder
     }
   }
 
@@ -409,13 +409,13 @@ export class Transition {
         transitionPhrases.push(new Phrase());
       }
       textAlign(CENTER, CENTER);
-    } else if (this.transitionCode === 1) {
+    } else if ([1, 2, 3, 4].includes(this.transitionCode)) {
       if (!state.video) {
         state.video = createCapture(VIDEO);
         state.video.size(width, height);
         state.video.hide();
       }
-      if (state.faceMesh && window.gotFaces) {
+      if (this.transitionCode !== 4 && state.faceMesh && window.gotFaces) {
         state.faceMesh.detectStart(state.video, window.gotFaces);
       }
       rectMode(CENTER);
@@ -435,50 +435,64 @@ export class Transition {
       }
       pop();
     } else if (this.transitionCode === 1) {
-      background(0);
-      if (!state.video) return;
-      state.video.loadPixels();
-      if (state.video.pixels.length === 0) return;
-      push();
-      translate(width, 0);
-      scale(-1, 1);
-      const bgScale = 12;
-      const faceBlockSize = 40;
-      const faceScale = 0.6;
-      rectMode(CORNER);
-      for (let y = 0; y < height; y += bgScale) {
-        for (let x = 0; x < width; x += bgScale) {
-          let index = (x + y * width) * 4;
-          let r = state.video.pixels[index + 0];
-          let g = state.video.pixels[index + 1];
-          let b = state.video.pixels[index + 2];
-          fill(r, g, b);
-          rect(x, y, bgScale, bgScale);
-        }
+      this.renderMosaicTransition({ faceColorMode: "grayscale", faceBlockSize: 40, bgScale: 12 });
+    } else if (this.transitionCode === 2) {
+      this.renderMosaicTransition({ faceColorMode: "color", faceBlockSize: 40, bgScale: 12 });
+    } else if (this.transitionCode === 3) {
+      this.renderMosaicTransition({ faceColorMode: "color", faceBlockSize: 12, bgScale: 12 });
+    } else if (this.transitionCode === 4) {
+      this.renderVideoDirect();
+    }
+  }
+
+  renderMosaicTransition({
+    faceColorMode = "grayscale",
+    faceBlockSize = 40,
+    bgScale = 12,
+    faceScale = 0.6,
+  } = {}) {
+    background(0);
+    if (!state.video) return;
+    state.video.loadPixels();
+    if (state.video.pixels.length === 0) return;
+    push();
+    translate(width, 0);
+    scale(-1, 1);
+    rectMode(CORNER);
+    for (let y = 0; y < height; y += bgScale) {
+      for (let x = 0; x < width; x += bgScale) {
+        let index = (x + y * width) * 4;
+        let r = state.video.pixels[index + 0];
+        let g = state.video.pixels[index + 1];
+        let b = state.video.pixels[index + 2];
+        fill(r, g, b);
+        rect(x, y, bgScale, bgScale);
       }
-      if (state.faces && state.faces.length > 0) {
-        let face = state.faces[0];
-        if (face.box) {
-          let x = face.box.x || face.box.xMin;
-          let y = face.box.y || face.box.yMin;
-          let w = face.box.width;
-          let h = face.box.height;
-          if (!isNaN(x) && !isNaN(y)) {
-            let centerX = x + w / 2;
-            let centerY = y + h / 2;
-            let maskRadius = ((w + h) / 2) * faceScale;
-            let scanSize = maskRadius * 1.5;
-            rectMode(CENTER);
-            for (let fy = centerY - scanSize; fy < centerY + scanSize; fy += faceBlockSize) {
-              for (let fx = centerX - scanSize; fx < centerX + scanSize; fx += faceBlockSize) {
-                let d = dist(fx, fy, centerX, centerY);
-                if (d < maskRadius) {
-                  let px = constrain(floor(fx), 0, width - 1);
-                  let py = constrain(floor(fy), 0, height - 1);
-                  let index = (px + py * width) * 4;
-                  let r = state.video.pixels[index + 0];
-                  let g = state.video.pixels[index + 1];
-                  let b = state.video.pixels[index + 2];
+    }
+    if (this.transitionCode !== 4 && state.faces && state.faces.length > 0) {
+      let face = state.faces[0];
+      if (face.box) {
+        let x = face.box.x || face.box.xMin;
+        let y = face.box.y || face.box.yMin;
+        let w = face.box.width;
+        let h = face.box.height;
+        if (!isNaN(x) && !isNaN(y)) {
+          let centerX = x + w / 2;
+          let centerY = y + h / 2;
+          let maskRadius = ((w + h) / 2) * faceScale;
+          let scanSize = maskRadius * 1.5;
+          rectMode(CENTER);
+          for (let fy = centerY - scanSize; fy < centerY + scanSize; fy += faceBlockSize) {
+            for (let fx = centerX - scanSize; fx < centerX + scanSize; fx += faceBlockSize) {
+              let d = dist(fx, fy, centerX, centerY);
+              if (d < maskRadius) {
+                let px = constrain(floor(fx), 0, width - 1);
+                let py = constrain(floor(fy), 0, height - 1);
+                let index = (px + py * width) * 4;
+                let r = state.video.pixels[index + 0];
+                let g = state.video.pixels[index + 1];
+                let b = state.video.pixels[index + 2];
+                if (faceColorMode === "grayscale") {
                   let bright = (r + g + b) / 3;
                   let glitch = random(-50, 50);
                   let finalGray = bright + glitch;
@@ -486,15 +500,27 @@ export class Transition {
                   else if (finalGray > 80) finalGray = 100;
                   else finalGray = 20;
                   fill(finalGray);
-                  rect(fx, fy, faceBlockSize, faceBlockSize);
+                } else {
+                  fill(r, g, b);
                 }
+                rect(fx, fy, faceBlockSize, faceBlockSize);
               }
             }
           }
         }
       }
-      pop();
     }
+    pop();
+  }
+
+  renderVideoDirect() {
+    background(0);
+    if (!state.video) return;
+    push();
+    translate(width, 0);
+    scale(-1, 1);
+    image(state.video, 0, 0, width, height);
+    pop();
   }
 }
 

@@ -90,6 +90,9 @@ function setup() {
   state.transitions = [
     new Transition(transitionDuration, 0),
     new Transition(transitionDuration, 1),
+    new Transition(transitionDuration, 2),
+    new Transition(transitionDuration, 3),
+    new Transition(transitionDuration, 4),
   ];
   envLayerInitialize();
   maskLayerInitialize();
@@ -210,7 +213,10 @@ function mouseWheel(event) {
         let dy = constrain(-event.deltaY, -0.6, 0.6);
         characterMe.update(dx, dy, labyrinthWalls);
         if (characterMe.y < 0) {
-          // next scene
+          const transition = state.transitions[2];
+          if (transition && !state.duringTransition) {
+            transition.startTransition();
+          }
         } else if (characterMe.y > 575) {
           state.currentScrollingPosition = sceneBounds[4].end - 100;
         }
