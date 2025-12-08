@@ -10,7 +10,7 @@ export class Mask {
     this.maskSizeWidth = maskSizeWidth;
     this.maskSizeHeight = maskSizeHeight;
     // this.maskSize = maskSizeWidth;
-    this.eyeSize = eyeSize;
+    this.eyeSize = eyeSize || maskSizeHeight / 3;
     this.rotation = 0;
     this.maskColor = maskColor;
   }

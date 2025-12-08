@@ -5,7 +5,7 @@ import { RectangleWithLine } from "./classes/RectangleWithLine.js";
 import { Wall } from "./classes/Wall.js";
 import { Player, Enemy } from "./classes/Character.js";
 
-export let maskLayer, envLayer, handLayer, labyrinthLayer;
+export let maskLayer, envLayer, handLayer, labyrinthLayer, tranEyeLayer;
 export let s1NoisyRect,
   s1WallLineUpLeft,
   s1WallLineUpRight,
@@ -21,6 +21,7 @@ export function createLayers(mainWidth, mainHeight) {
   envLayer = createGraphics(mainWidth, mainHeight);
   handLayer = createGraphics(mainWidth / 2, mainHeight / 2);
   labyrinthLayer = createGraphics(mainWidth, mainHeight);
+  tranEyeLayer = createGraphics(mainWidth, mainHeight);
 }
 
 export function handLayerInitialize() {

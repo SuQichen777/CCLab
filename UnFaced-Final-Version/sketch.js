@@ -3,6 +3,7 @@ import {
   sceneBounds,
   scrollingMaxSpd,
   defaultPageOptions,
+  transitionDuration,
 } from "./constants.js";
 import {
   createLayers,
@@ -18,6 +19,7 @@ import {
 } from "./layers.js";
 import {
   Scene,
+  Transition,
   scene1,
   scene2,
   scene3,
@@ -60,27 +62,27 @@ let faceMesh,
 
 function preload() {
   faceMesh = ml5.faceMesh(options);
+  state.faceMesh = faceMesh;
+  state.mirrorImg = loadImage("assets/Transition/Mirror.png");
 }
 
 function setup() {
   let canvas = createCanvas(1000, 600);
-  frozenCircleRadius = (2 / 500) * width;
-  // detect face
-  video = createCapture(VIDEO);
-  video.size(height, width);
-  video.hide();
-  faceMesh.detectStart(video, gotFaces);
   createLayers(width, height);
   state.currentScrollingPosition = 0;
   state.scenes = [
     new Scene(sceneBounds[0].start, sceneBounds[0].end, () => {
-      image(maskLayer, 0, 0);
+      image(maskLayer, 0, 0), 0;
     }),
-    new Scene(sceneBounds[1].start, sceneBounds[1].end, scene1),
-    new Scene(sceneBounds[2].start, sceneBounds[2].end, scene2),
-    new Scene(sceneBounds[3].start, sceneBounds[3].end, scene3),
-    new Scene(sceneBounds[4].start, sceneBounds[4].end, scene4),
-    new Scene(sceneBounds[5].start, sceneBounds[5].end, sceneEscape),
+    new Scene(sceneBounds[1].start, sceneBounds[1].end, scene1, 1),
+    new Scene(sceneBounds[2].start, sceneBounds[2].end, scene2, 2),
+    new Scene(sceneBounds[3].start, sceneBounds[3].end, scene3, 3),
+    new Scene(sceneBounds[4].start, sceneBounds[4].end, scene4, 4),
+    new Scene(sceneBounds[5].start, sceneBounds[5].end, sceneEscape, 5),
+  ];
+  state.transitions = [
+    new Transition(transitionDuration, 0),
+    new Transition(transitionDuration, 1),
   ];
   envLayerInitialize();
   maskLayerInitialize();
@@ -91,31 +93,39 @@ function setup() {
 
 function draw() {
   if (state.storyStarted) {
-    background(0);
-    let activeScene = state.scenes.find((scene) =>
-      scene.contains(state.currentScrollingPosition)
-    );
-    if (activeScene.render != sceneEscape) {
-      
-      image(envLayer, 0, 0);
-      handLayer.clear();
-      leftHand.update(0);
-      leftHand.display(handLayer);
-      image(handLayer, 0, height - handLayer.height);
-    }
+    if (state.duringTransition) {
+      if (state.currentTransitionStartingPage == -1) return;
+      let currentTransition =
+        state.transitions[state.currentTransitionStartingPage];
+      currentTransition.render();
+      console.log("Transition at Position:", currentTransition.currentPosition);
+    } else {
+      background(0);
+      let activeScene = state.scenes.find((scene) =>
+        scene.contains(state.currentScrollingPosition)
+      );
+      console.log("Scene at Position:", state.currentScrollingPosition);
+      if (activeScene.render != sceneEscape) {
+        image(envLayer, 0, 0);
+        handLayer.clear();
+        leftHand.update(0);
+        leftHand.display(handLayer);
+        image(handLayer, 0, height - handLayer.height);
+      }
 
-    if (
-      state.currentScrollingPosition > state.scenes[state.scenes.length - 1].end
-    ) {
-      state.currentScrollingPosition =
-        state.scenes[state.scenes.length - 1].end;
-    }
+      if (
+        state.currentScrollingPosition >
+        state.scenes[state.scenes.length - 1].end
+      ) {
+        state.currentScrollingPosition =
+          state.scenes[state.scenes.length - 1].end;
+      }
 
-    if (activeScene) {
-      activeScene.render();
+      if (activeScene) {
+        activeScene.render();
+      }
     }
   } else {
-    // click to start
     // defaultPage();
   }
 }
@@ -173,49 +183,52 @@ function defaultPage() {
 }
 
 function mouseWheel(event) {
-  if (leftHand.currentMode != 1) {
+  if (event && event.preventDefault) {
+    event.preventDefault();
+  }
+  if (leftHand.currentMode != 1 && state.storyStarted) {
     let mouseScrollingExtent = constrain(
       event.delta,
       -scrollingMaxSpd,
       scrollingMaxSpd
     );
-    let activeScene = state.scenes.find((scene) =>
-      scene.contains(state.currentScrollingPosition)
-    );
-    if (activeScene.render != sceneEscape) {
-      state.currentScrollingPosition += mouseScrollingExtent;
+    if (state.duringTransition) {
+      // In Transition
+      if (state.currentTransitionStartingPage == -1) return;
+      let currentTransition =
+        state.transitions[state.currentTransitionStartingPage];
+      currentTransition.currentPosition += mouseScrollingExtent;
     } else {
-      let dx = constrain(-event.deltaX, -0.6, 0.6);
-      let dy = constrain(-event.deltaY, -0.6, 0.6);
-      characterMe.update(dx, dy, labyrinthWalls);
-      if (characterMe.y < 0){
-        // next scene
-      } else if (characterMe.y > 575) {
-        state.currentScrollingPosition = sceneBounds[2].end - 100;
+      let activeScene = state.scenes.find((scene) =>
+        scene.contains(state.currentScrollingPosition)
+      );
+      if (activeScene.render != sceneEscape) {
+        state.currentScrollingPosition += mouseScrollingExtent;
+      } else {
+        let dx = constrain(-event.deltaX, -0.6, 0.6);
+        let dy = constrain(-event.deltaY, -0.6, 0.6);
+        characterMe.update(dx, dy, labyrinthWalls);
+        if (characterMe.y < 0) {
+          // next scene
+        } else if (characterMe.y > 575) {
+          state.currentScrollingPosition = sceneBounds[2].end - 100;
+        }
       }
     }
   }
+  return false;
 }
 
 function mousePressed() {
-  state.storyStarted = true;
-  if (!state.storyStarted) {
-    if (!faces.length || faces[0].keypoints.length <= 366) return;
-    const primaryFace = faces[0];
-    const maskSizeWidth = Math.abs(
-      primaryFace.keypoints[366].x - primaryFace.keypoints[137].x
-    );
-    const maskSizeHeight = Math.abs(
-      primaryFace.keypoints[152].y - primaryFace.keypoints[10].y
-    );
-    const maskStartX = primaryFace.keypoints[4].x;
-    const maskStartY = primaryFace.keypoints[4].y;
-    clickMask = {
-      x: maskStartX,
-      y: maskStartY,
-      w: maskSizeWidth,
-      h: maskSizeHeight,
-    };
+  if (state.duringTransition) {
+    const currentTransition =
+      state.transitions[state.currentTransitionStartingPage];
+    if (currentTransition) {
+      currentTransition.allowEnd = true;
+    }
+  } else if (!state.storyStarted) {
+    state.storyStarted = true;
+    state.transitions[0].startTransition();
   }
 }
 
@@ -229,6 +242,9 @@ function gotFaces(results) {
         ch: random(0, 1) < randomnessControl ? random(randomChar) : null,
       })),
     }));
+    state.faces = faces;
+  } else {
+    state.faces = [];
   }
 }
 
@@ -237,3 +253,4 @@ window.setup = setup;
 window.draw = draw;
 window.mouseWheel = mouseWheel;
 window.mousePressed = mousePressed;
+window.gotFaces = gotFaces;

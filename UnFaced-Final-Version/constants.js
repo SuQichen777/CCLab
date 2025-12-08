@@ -1,5 +1,5 @@
-export const scrollingMaxSpd = 40;
-
+export const scrollingMaxSpd = 50;
+export const transitionDuration = 3000;
 export const sceneBounds = [
   { start: -Infinity, end: 0 },
   { start: 0, end: 1000 },
