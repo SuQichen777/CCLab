@@ -17,4 +17,6 @@
 5) Run and verify that `draw` picks up the scene at the expected scroll range.
 
 ## TODO:
-Change `state.currentScrollingPosition = sceneBounds[2].end - 100;`into the real reset scene in `sketch.js` and `scenes.js`
+- Change `state.currentScrollingPosition = sceneBounds[2].end - 100;`into the real reset scene in `sketch.js` and `scenes.js`
+- Link Default Page and the First Scene
+- Add Sound Effect
