@@ -101,6 +101,15 @@ export function scene3() {
   }
 }
 
+export function isScene3RedButtonHit(mx, my) {
+  if (!state.scenes[3]) return false;
+  if (state.currentScrollingPosition < state.scenes[3].end - 50) return false;
+  const cx = s3Door.centerX - s3Door.width / 4;
+  const cy = s3Door.centerY;
+  const radius = ((10 / 500) * width) / 2;
+  return dist(mx, my, cx, cy) <= radius;
+}
+
 export function scene4() {}
 export function sceneEscape() {
   // The process of constraining mouseScrollingExtent

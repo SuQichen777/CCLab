@@ -25,6 +25,7 @@ import {
   scene3,
   scene4,
   sceneEscape,
+  isScene3RedButtonHit,
 } from "./scenes.js";
 
 // export const state = {
@@ -229,6 +230,11 @@ function mousePressed() {
   } else if (!state.storyStarted) {
     state.storyStarted = true;
     state.transitions[0].startTransition();
+  } else if (isScene3RedButtonHit(mouseX, mouseY)) {
+    const transition = state.transitions[1];
+    if (transition) {
+      transition.startTransition();
+    }
   }
 }
 
