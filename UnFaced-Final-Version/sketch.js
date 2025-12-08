@@ -16,6 +16,7 @@ import {
   leftHand,
   characterMe,
   labyrinthWalls,
+  labyrinthLayerInitialize,
 } from "./layers.js";
 import {
   Scene,
@@ -65,6 +66,11 @@ function preload() {
   faceMesh = ml5.faceMesh(options);
   state.faceMesh = faceMesh;
   state.mirrorImg = loadImage("assets/Transition/Mirror.png");
+  // Preload Chapter 2 assets for scene4
+  state.chapter2TitleImg = loadImage("assets/Ch2-Escape/Chapter2-With-Title.png");
+  state.chapter2MapImg = loadImage("assets/Ch2-Escape/Map.png");
+  // Default page poster
+  state.posterImg = loadImage("assets/Default-Page-Poster.png");
 }
 
 function setup() {
@@ -93,6 +99,7 @@ function setup() {
 }
 
 function draw() {
+  imageMode(CORNER);
   if (state.storyStarted) {
     if (state.duringTransition) {
       if (state.currentTransitionStartingPage == -1) return;
@@ -106,12 +113,18 @@ function draw() {
         scene.contains(state.currentScrollingPosition)
       );
       console.log("Scene at Position:", state.currentScrollingPosition);
+      if (activeScene && state.currentSceneCode !== activeScene.sceneCode) {
+        if (activeScene.render === sceneEscape) {
+          labyrinthLayerInitialize();
+        }
+        state.currentSceneCode = activeScene.sceneCode;
+      }
       if (activeScene.render != sceneEscape) {
         image(envLayer, 0, 0);
         handLayer.clear();
         leftHand.update(0);
         leftHand.display(handLayer);
-        image(handLayer, 0, height - handLayer.height);
+        // image(handLayer, 0, height - handLayer.height);
       }
 
       if (
@@ -127,59 +140,40 @@ function draw() {
       }
     }
   } else {
-    // defaultPage();
+    defaultPage();
   }
 }
 
 function defaultPage() {
   push();
-  translate(width, 0);
-  scale(-1, 1);
-  background(255);
-  let targetFaces = isFaceFrozen ? frozenFaces : faces;
-  // moving the data points
-  if (isFaceFrozen) {
-    noStroke();
-    fill(0);
-    for (let i = 0; i < targetFaces.length; i++) {
-      const face = targetFaces[i];
-      for (let j = 0; j < face.keypoints.length; j++) {
-        const keypoint = face.keypoints[j];
-        circle(keypoint.x, keypoint.y, frozenCircleRadius * 2);
-      }
-    }
-  } else {
-    textSize(15);
-    fill(0);
-    for (let i = 0; i < targetFaces.length; i++) {
-      let face = targetFaces[i];
-      for (let j = 0; j < face.keypoints.length; j++) {
-        let keypoint = face.keypoints[j];
-        noStroke();
-        if (keypoint.ch) {
-          text(keypoint.ch, keypoint.x, keypoint.y);
-        }
-      }
-    }
+  background(0);
+
+  const shakeMagnitude = 2.5;
+  const leftCenterX = 250;
+  const leftCenterY = 300;
+  const shakeX = map(noise(frameCount * 0.1), 0, 1, -shakeMagnitude, shakeMagnitude);
+  const shakeY = map(noise(frameCount * 0.1 + 1000), 0, 1, -shakeMagnitude, shakeMagnitude);
+
+  imageMode(CENTER);
+  if (state.posterImg) {
+    image(state.posterImg, leftCenterX + shakeX, leftCenterY + shakeY, 300, 375);
   }
-  if (clickMask) {
-    noStroke();
-    fill(0);
-    ellipse(clickMask.x, clickMask.y, clickMask.w, clickMask.h);
-    erase();
-    const eyeSize = min(clickMask.w, clickMask.h) / 3;
-    ellipse(
-      clickMask.x - clickMask.w / 4,
-      clickMask.y - clickMask.h / 8,
-      eyeSize
-    );
-    ellipse(
-      clickMask.x + clickMask.w / 4,
-      clickMask.y - clickMask.h / 8,
-      eyeSize
-    );
-    noErase();
-  }
+
+  fill(220);
+  noStroke();
+  textAlign(LEFT, TOP);
+  textSize(24);
+  textFont("Edu NSW ACT Cursive");
+
+  const contentStr =
+    'This is a poster of "We", and you are a member of "Us". You are the same, non-deviant, and safe with your mask on. Press your mouse to start your journey.Hint: Scroll to Proceed. Click if you are stuck.';
+
+  const textX = 550;
+  const textY = 100;
+  const textWidth = 400;
+  const textHeight = 450;
+
+  text(contentStr, textX, textY, textWidth, textHeight);
   pop();
 }
 
@@ -203,16 +197,22 @@ function mouseWheel(event) {
       let activeScene = state.scenes.find((scene) =>
         scene.contains(state.currentScrollingPosition)
       );
-      if (activeScene.render != sceneEscape) {
-        state.currentScrollingPosition += mouseScrollingExtent;
-      } else {
+      if (activeScene && activeScene.render != sceneEscape) {
+        let nextScroll = state.currentScrollingPosition + mouseScrollingExtent;
+        if (activeScene.render === scene3) {
+          nextScroll = Math.min(nextScroll, activeScene.end);
+        } else if (activeScene.render === scene4) {
+          nextScroll = Math.max(nextScroll, activeScene.start);
+        }
+        state.currentScrollingPosition = nextScroll;
+      } else if (activeScene) {
         let dx = constrain(-event.deltaX, -0.6, 0.6);
         let dy = constrain(-event.deltaY, -0.6, 0.6);
         characterMe.update(dx, dy, labyrinthWalls);
         if (characterMe.y < 0) {
           // next scene
         } else if (characterMe.y > 575) {
-          state.currentScrollingPosition = sceneBounds[2].end - 100;
+          state.currentScrollingPosition = sceneBounds[4].end - 100;
         }
       }
     }

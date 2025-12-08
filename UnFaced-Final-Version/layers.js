@@ -113,12 +113,8 @@ export function envLayerInitialize() {
 export function maskLayerInitialize() {
   maskLayer.noStroke();
   maskLayer.angleMode(DEGREES);
-  mask = new Mask(
-    maskLayer.width / 2,
-    maskLayer.height / 2,
-    (600 / 500) * width,
-    (200 / 300) * height
-  );
+  const maskSize = max((600 / 500) * width, (200 / 300) * height);
+  mask = new Mask(maskLayer.width / 2, maskLayer.height / 2, maskSize, maskSize);
   mask.display(maskLayer);
 }
 

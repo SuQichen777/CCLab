@@ -110,7 +110,55 @@ export function isScene3RedButtonHit(mx, my) {
   return dist(mx, my, cx, cy) <= radius;
 }
 
-export function scene4() {}
+export function scene4() {
+  const titleImg = state.chapter2TitleImg;
+  const mapImg = state.chapter2MapImg;
+
+  envLayer.clear();
+  if (!titleImg || !mapImg) {
+    return;
+  }
+
+  const progress = constrain(
+    (state.currentScrollingPosition - sceneBounds[4].start) /
+      (sceneBounds[4].end - sceneBounds[4].start),
+    0,
+    1
+  );
+
+  const startX = 600;
+  const startY = 200;
+  const startWidth = 250;
+  const startHeight = 150;
+
+  const endX = width / 2;
+  const endY = height / 2;
+  const endWidth = 1000;
+  const endHeight = 600;
+
+  const mapX = lerp(startX, endX, progress);
+  const mapY = lerp(startY, endY, progress);
+  const mapWidth = lerp(startWidth, endWidth, progress);
+  const mapHeight = lerp(startHeight, endHeight, progress);
+
+  envLayer.push();
+  envLayer.imageMode(CENTER);
+
+  const coverScale = Math.max(
+    width / titleImg.width,
+    height / titleImg.height
+  );
+  envLayer.image(
+    titleImg,
+    width / 2,
+    height / 2,
+    titleImg.width * coverScale,
+    titleImg.height * coverScale
+  );
+
+  envLayer.image(mapImg, mapX, mapY, mapWidth, mapHeight);
+  envLayer.pop();
+}
 export function sceneEscape() {
   // The process of constraining mouseScrollingExtent
   // and the update of player
@@ -250,6 +298,7 @@ export class Transition {
       state.currentScrollingPosition = sceneBounds[1].start;
     } else if (this.transitionCode == 1) {
       // state.currentScrollingPosition = sceneBounds[1].start;
+      state.currentScrollingPosition = sceneBounds[4].start;
     } else if (this.transitionCode == 2) {
       // state.currentScrollingPosition = sceneBounds[1].start;
     } else if (this.transitionCode == 3) {

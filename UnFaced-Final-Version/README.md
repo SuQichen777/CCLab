@@ -18,5 +18,7 @@
 
 ## TODO:
 - Change `state.currentScrollingPosition = sceneBounds[2].end - 100;`into the real reset scene in `sketch.js` and `scenes.js`
-- Link Default Page and the First Scene
 - Add Sound Effect
+### Bugs will be fixed:
+- Currently pressing mouse before ml5.js is loaded might lead to a skip of the default page and the First transition page. 
+- Not Pressing the Red Button can still make it possible for Chapter 3.
