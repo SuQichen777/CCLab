@@ -40,6 +40,40 @@ const sceneMeFriction = 0.99;
 const sceneMeWallDamping = -0.8;
 let sceneMeTransitionStarted = false;
 
+function stopHeartbeat() {
+  if (state.heartbeatSound) {
+    state.heartbeatSound.stop();
+  }
+  state.heartbeatPlaying = false;
+  state.heartbeatActive = false;
+  state.heartbeatRemaining = 0;
+}
+
+function playHeartbeatOnce() {
+  if (!state.heartbeatActive || !state.heartbeatSound) return;
+  if (state.heartbeatRemaining <= 0) {
+    state.heartbeatActive = false;
+    return;
+  }
+  state.heartbeatSound.stop();
+  state.heartbeatSound.setLoop(false);
+  state.heartbeatPlaying = true;
+  state.heartbeatRemaining--;
+  state.heartbeatSound.play();
+  state.heartbeatSound.onended(() => {
+    state.heartbeatPlaying = false;
+    playHeartbeatOnce();
+  });
+}
+
+function startHeartbeat(times = 2) {
+  stopHeartbeat();
+  if (!state.heartbeatSound) return;
+  state.heartbeatRemaining = times;
+  state.heartbeatActive = true;
+  playHeartbeatOnce();
+}
+
 class FactoryCargo {
   constructor(isLeft, img) {
     this.isLeft = isLeft;
@@ -285,6 +319,10 @@ export function resetFactoryScene() {
 export function sceneFactory() {
   envLayer.clear();
   envLayer.background(255);
+  if (state.factorySound && !state.factorySoundPlaying) {
+    state.factorySound.loop();
+    state.factorySoundPlaying = true;
+  }
 
   state.factoryScrollDelta =
     state.currentScrollingPosition - (state.factoryLastScrollPos || state.currentScrollingPosition);
@@ -330,6 +368,10 @@ export function sceneFactory() {
 }
 
 export function sceneFactoryEnd() {
+  if (state.factorySound && state.factorySoundPlaying) {
+    state.factorySound.stop();
+    state.factorySoundPlaying = false;
+  }
   envLayer.clear();
   const img = state.factoryEndImg;
   if (!img) return;
@@ -457,6 +499,7 @@ export class Transition {
     state.currentTransitionStartingPage = this.transitionCode;
     transitionRenderInit();
     this.initTransitionContent();
+    startHeartbeat(2);
   }
 
   render() {
@@ -489,6 +532,9 @@ export class Transition {
         image(tranEyeLayer, 0, 0);
       }
     }
+    if (this.currentPosition >= blinkEnd) {
+      stopHeartbeat();
+    }
     if (this.currentPosition >= this.duration) {
       // reaching the end
       this.renderTransitionContent();
@@ -500,6 +546,7 @@ export class Transition {
 
   endTransition() {
     if (!this.allowEnd){return;}
+    stopHeartbeat();
     state.duringTransition = false;
     state.currentTransitionStartingPage = -1;
     envLayer.clear();
@@ -507,6 +554,9 @@ export class Transition {
     if (this.transitionCode == 0) {
       envLayerInitialize();
       state.currentScrollingPosition = sceneBounds[1].start;
+      if (state.maskSound) {
+        state.maskSound.play();
+      }
     } else if (this.transitionCode == 1) {
       // state.currentScrollingPosition = sceneBounds[1].start;
       state.currentScrollingPosition = sceneBounds[4].start;

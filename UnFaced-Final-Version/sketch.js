@@ -78,6 +78,10 @@ function preload() {
   // Default page poster
   state.posterImg = loadImage("assets/Default-Page-Poster.png");
   state.factoryEndImg = loadImage("assets/Factory-2.png");
+  state.doorOpenSound = loadSound("assets/Door-Open.mp3");
+  state.heartbeatSound = loadSound("assets/Transition/HeartBeat.mp3");
+  state.maskSound = loadSound("assets/Transition/Wearing-Mask-Sound.mp3");
+  state.factorySound = loadSound("assets/Ch3-Factory/Factory-Sound.mp3");
   const factoryFiles = [
     "Adult-We-With-AngryFace.png",
     "Adult-We-With-HappyFace.png",
@@ -253,6 +257,14 @@ function mouseWheel(event) {
       if (activeScene && activeScene.render != sceneEscape) {
         let nextScroll = state.currentScrollingPosition + mouseScrollingExtent;
         if (activeScene.render === scene3) {
+          if (
+            nextScroll >= activeScene.end &&
+            state.transitions[1] &&
+            !state.duringTransition
+          ) {
+            state.transitions[1].startTransition();
+            return false;
+          }
           nextScroll = Math.min(nextScroll, activeScene.end);
         } else if (activeScene.render === scene4) {
           nextScroll = Math.max(nextScroll, activeScene.start);
@@ -287,6 +299,10 @@ function mousePressed() {
     state.storyStarted = true;
     state.transitions[0].startTransition();
   } else if (isScene3RedButtonHit(mouseX, mouseY)) {
+    if (state.doorOpenSound && !state.s3DoorSoundPlayed) {
+      state.doorOpenSound.play();
+      state.s3DoorSoundPlayed = true;
+    }
     const transition = state.transitions[1];
     if (transition) {
       transition.startTransition();
