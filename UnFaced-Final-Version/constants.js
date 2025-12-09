@@ -1,4 +1,4 @@
-export const scrollingMaxSpd = 50;
+export const scrollingMaxSpd = 2;
 export const transitionDuration = 3000;
 export const sceneBounds = [
   { start: -Infinity, end: 0 },
@@ -6,7 +6,10 @@ export const sceneBounds = [
   { start: 1000, end: 2000 },
   { start: 2000, end: 2500 },
   { start: 2500, end: 3000 },
-  { start: 3000, end: 30000 },
+  { start: 3000, end: 4000 }, //escape
+  { start: 4500, end: 7900 }, //sceneFactory
+  { start: 7900, end: 9000 }, //sceneFactoryEnd
+  { start: 10000, end: Infinity}, // sceneMe
 ];
 
 export const defaultPageOptions =  { maxFaces: 1, refineLandmarks: false, flipped: false };

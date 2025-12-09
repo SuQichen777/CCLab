@@ -923,6 +923,16 @@ function transitionRenderInit() {
   tranWallLineDownLeft.display(envLayer);
   tranWallLineDownRight.display(envLayer);
 
+  if (state.mirrorImg) {
+    const mirrorAspect = state.mirrorImg.height / state.mirrorImg.width;
+    const mirrorWidth = tranRoomWidth / 3;
+    const mirrorHeight = mirrorWidth * mirrorAspect;
+    envLayer.push();
+    envLayer.imageMode(CENTER);
+    envLayer.image(state.mirrorImg, tranRoomCenterX, tranRoomCenterY, mirrorWidth, mirrorHeight);
+    envLayer.pop();
+  }
+
   // int tranEyeLayer with closed eye
   tranEyeLayer.background(0);
 }
