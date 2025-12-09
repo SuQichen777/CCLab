@@ -1,5 +1,5 @@
 import { state } from "./state.js";
-import { sceneBounds } from "./constants.js";
+import { sceneBounds, scrollingMaxSpd } from "./constants.js";
 import {
   envLayer,
   maskLayer,
@@ -24,6 +24,73 @@ import {
 import { RectangleWithLine } from "./classes/RectangleWithLine.js";
 import { Line } from "./classes/Line.js";
 import { handlePlayerEnemyCollision } from "./classes/Character.js";
+
+// SceneMe state
+let sceneMeLayer;
+const sceneMeGridSize = 12;
+let sceneMePosX = 0;
+let sceneMePosY = 0;
+let sceneMeVx = 0;
+let sceneMeVy = 0;
+let sceneMeWAngle = 0;
+let sceneMeBounceCount = 0;
+const sceneMeTargetBounces = 18;
+const sceneMeTriggerBounces = 22;
+const sceneMeFriction = 0.99;
+const sceneMeWallDamping = -0.8;
+let sceneMeTransitionStarted = false;
+
+class FactoryCargo {
+  constructor(isLeft, img) {
+    this.isLeft = isLeft;
+    this.img = img;
+    this.t = 0;
+    this.speed = 0.002;
+  }
+
+  update(delta) {
+    this.t += delta * this.speed;
+    this.t = constrain(this.t, 0, 1.05);
+  }
+
+  isDead() {
+    return this.t >= 1;
+  }
+
+  display(layer) {
+    const topY = (height / 10) * 2;
+    const topW = (height / 10) * 2;
+    const laneWTop = topW / 3;
+    const laneWBottom = width / 3;
+    const topStartX = width / 2 - topW / 2;
+
+    const currentY = lerp(topY, height, this.t);
+    let x1, x2;
+    if (this.isLeft) {
+      x1 = lerp(topStartX, 0, this.t);
+      x2 = lerp(topStartX + laneWTop, laneWBottom, this.t);
+    } else {
+      x1 = lerp(topStartX + laneWTop * 2, laneWBottom * 2, this.t);
+      x2 = lerp(topStartX + laneWTop * 3, width, this.t);
+    }
+
+    const laneWidthCurrent = x2 - x1;
+    const boxW = laneWidthCurrent * 0.8;
+    const boxH = boxW;
+    const centerX = (x1 + x2) / 2;
+
+    layer.push();
+    layer.imageMode(CENTER);
+    layer.rectMode(CENTER);
+    if (this.img) {
+      layer.image(this.img, centerX, currentY, boxW, boxH);
+    } else {
+      layer.fill(200);
+      layer.rect(centerX, currentY, boxW, boxH);
+    }
+    layer.pop();
+  }
+}
 
 export class Scene {
   constructor(start, end, render, sceneCode) {
@@ -158,6 +225,150 @@ export function scene4() {
 
   envLayer.image(mapImg, mapX, mapY, mapWidth, mapHeight);
   envLayer.pop();
+}
+
+function drawFactoryBackgroundAndBelt() {
+  envLayer.noFill();
+  envLayer.stroke(0);
+  envLayer.strokeWeight(5);
+  envLayer.strokeCap(ROUND);
+  envLayer.strokeJoin(ROUND);
+  envLayer.rectMode(CENTER);
+
+  const topY = (height / 10) * 2;
+  const topW = (height / 10) * 2;
+  const laneWTop = topW / 3;
+  const laneWBottom = width / 3;
+  const topStartX = width / 2 - topW / 2;
+
+  envLayer.rect(width / 2, height / 10, topW, topW);
+  envLayer.line(topStartX, topY, 0, height);
+  envLayer.line(topStartX + laneWTop, topY, laneWBottom, height);
+  envLayer.line(topStartX + laneWTop * 2, topY, laneWBottom * 2, height);
+  envLayer.line(topStartX + laneWTop * 3, topY, width, height);
+
+  let beltOffset = state.factoryBeltOffset + 0.002 * state.factoryScrollDelta;
+  beltOffset = ((beltOffset % 1) + 1) % 1;
+  state.factoryBeltOffset = beltOffset;
+  const numStripes = 6;
+  envLayer.strokeWeight(2);
+  for (let i = 0; i < numStripes; i++) {
+    const t = (beltOffset + i / numStripes) % 1;
+    const currentY = lerp(topY, height, t);
+
+    const lx1 = lerp(topStartX, 0, t);
+    const lx2 = lerp(topStartX + laneWTop, laneWBottom, t);
+    envLayer.line(lx1, currentY, lx2, currentY);
+
+    const rx1 = lerp(topStartX + laneWTop * 2, laneWBottom * 2, t);
+    const rx2 = lerp(topStartX + laneWTop * 3, width, t);
+    envLayer.line(rx1, currentY, rx2, currentY);
+  }
+}
+
+function spawnFactoryCargo() {
+  if (!state.factoryImages || !state.factoryImages.length) return;
+  const isLeft = state.factoryItemsSpawned % 2 === 0;
+  const img = state.factoryImages[state.factoryItemsSpawned % state.factoryImages.length];
+  state.factoryCargos.push(new FactoryCargo(isLeft, img));
+  state.factoryItemsSpawned++;
+}
+
+export function resetFactoryScene() {
+  state.factoryCargos = [];
+  state.factoryItemsSpawned = 0;
+  state.factoryFinished = false;
+  state.factoryBeltOffset = 0;
+  state.factoryLastScrollPos = state.currentScrollingPosition;
+}
+
+export function sceneFactory() {
+  envLayer.clear();
+  envLayer.background(255);
+
+  state.factoryScrollDelta =
+    state.currentScrollingPosition - (state.factoryLastScrollPos || state.currentScrollingPosition);
+  state.factoryLastScrollPos = state.currentScrollingPosition;
+
+  drawFactoryBackgroundAndBelt();
+
+  if (
+    state.factoryItemsSpawned === 0 &&
+    state.factoryCargos.length === 0 &&
+    state.factoryItemsSpawned < state.factoryMaxItems
+  ) {
+    spawnFactoryCargo();
+  }
+
+  if (
+    state.factoryScrollDelta > 0 &&
+    state.factoryItemsSpawned < state.factoryMaxItems &&
+    state.factoryCargos.length > 0
+  ) {
+    const lastCargo = state.factoryCargos[state.factoryCargos.length - 1];
+    if (lastCargo.t > 0.75) {
+      spawnFactoryCargo();
+    }
+  }
+
+  for (let i = state.factoryCargos.length - 1; i >= 0; i--) {
+    const cargo = state.factoryCargos[i];
+    cargo.update(state.factoryScrollDelta);
+    cargo.display(envLayer);
+    if (cargo.isDead()) {
+      state.factoryCargos.splice(i, 1);
+    }
+  }
+
+  if (
+    !state.factoryFinished &&
+    state.factoryItemsSpawned >= state.factoryMaxItems &&
+    state.factoryCargos.length === 0
+  ) {
+    state.factoryFinished = true;
+  }
+}
+
+export function sceneFactoryEnd() {
+  envLayer.clear();
+  const img = state.factoryEndImg;
+  if (!img) return;
+
+  const progress = constrain(
+    (state.currentScrollingPosition - sceneBounds[7].start) /
+      (sceneBounds[7].end - sceneBounds[7].start),
+    0,
+    1
+  );
+
+  const baseScale = Math.max(width / img.width, height / img.height);
+  const startScale = baseScale;
+  const endScale = Math.max(width / 400, height / 240);
+  const startCenter = createVector(width / 2, height / 2);
+  const focusCanvas = createVector(width / 2, height / 10);
+  const targetCenter = createVector(width / 2, height / 2);
+  const focusLocal = p5.Vector.sub(focusCanvas, startCenter).div(startScale);
+  const endCenter = p5.Vector.sub(targetCenter, p5.Vector.mult(focusLocal, endScale));
+
+  const drawScale = lerp(startScale, endScale, progress);
+  const drawCenter = p5.Vector.lerp(startCenter, endCenter, progress);
+  const drawW = img.width * drawScale;
+  const drawH = img.height * drawScale;
+
+  envLayer.push();
+  envLayer.imageMode(CENTER);
+  envLayer.image(img, drawCenter.x, drawCenter.y, drawW, drawH);
+  envLayer.pop();
+
+  if (
+    !state.duringTransition &&
+    !state.factoryEndTransitionStarted &&
+    progress >= 1 &&
+    state.transitions[3]
+  ) {
+    state.factoryEndTransitionStarted = true;
+    state.transitions[3].startTransition();
+  }
 }
 export function sceneEscape() {
   // The process of constraining mouseScrollingExtent
@@ -300,11 +511,12 @@ export class Transition {
       // state.currentScrollingPosition = sceneBounds[1].start;
       state.currentScrollingPosition = sceneBounds[4].start;
     } else if (this.transitionCode == 2) {
-      // placeholder for future chapter start after sceneEscape
+      state.currentScrollingPosition = sceneBounds[6].start;
     } else if (this.transitionCode == 3) {
-      // placeholder
+      state.currentScrollingPosition = sceneBounds[8].start;
     } else if (this.transitionCode == 4) {
-      // placeholder
+      state.currentScrollingPosition = sceneBounds[0].start;
+      window.location.reload();
     }
   }
 
@@ -521,6 +733,135 @@ export class Transition {
     scale(-1, 1);
     image(state.video, 0, 0, width, height);
     pop();
+  }
+}
+
+function initSceneMe() {
+  sceneMeLayer = createGraphics(width, height);
+  sceneMeLayer.angleMode(DEGREES);
+  sceneMeLayer.textSize(height * (150 / 450));
+  sceneMeLayer.textAlign(CENTER, CENTER);
+  sceneMeLayer.textStyle(BOLD);
+  sceneMeLayer.noStroke();
+  sceneMePosX = width / 2;
+  sceneMePosY = height / 2;
+  sceneMeVx = 0;
+  sceneMeVy = 0;
+  sceneMeWAngle = 0;
+  sceneMeBounceCount = 0;
+  sceneMeTransitionStarted = false;
+}
+
+function updateSceneMePhysics() {
+  sceneMePosX += sceneMeVx;
+  sceneMePosY += sceneMeVy;
+  sceneMeVx *= sceneMeFriction;
+  sceneMeVy *= sceneMeFriction;
+
+  const boundW = width * (180 / 800);
+  const boundH = height * (100 / 450);
+  let hit = false;
+
+  if (sceneMePosX < boundW || sceneMePosX > width - boundW) {
+    sceneMeVx *= sceneMeWallDamping;
+    sceneMePosX = constrain(sceneMePosX, boundW, width - boundW);
+    hit = true;
+  }
+
+  if (sceneMePosY < boundH || sceneMePosY > height - boundH) {
+    sceneMeVy *= sceneMeWallDamping;
+    sceneMePosY = constrain(sceneMePosY, boundH, height - boundH);
+    hit = true;
+  }
+
+  if (hit && (abs(sceneMeVx) > 1 || abs(sceneMeVy) > 1)) {
+    if (sceneMeBounceCount < sceneMeTriggerBounces) {
+      sceneMeBounceCount++;
+      if (sceneMeBounceCount <= sceneMeTargetBounces) {
+        sceneMeWAngle += 10;
+      } else {
+        sceneMeWAngle = 180;
+      }
+    } else if (sceneMeBounceCount === sceneMeTriggerBounces) {
+      sceneMeWAngle = 180;
+    }
+  }
+}
+
+function drawSceneMeLetters() {
+  sceneMeLayer.background(0);
+  sceneMeLayer.fill(255);
+
+  const offset = width * 0.1;
+
+  sceneMeLayer.push();
+  sceneMeLayer.translate(sceneMePosX - offset, sceneMePosY);
+  sceneMeLayer.rotate(sceneMeWAngle);
+  const visualFix = map(sceneMeWAngle, 0, 180, 0, height * (20 / 450));
+  sceneMeLayer.text("W", 0, visualFix);
+  sceneMeLayer.pop();
+
+  sceneMeLayer.push();
+  sceneMeLayer.translate(sceneMePosX + offset, sceneMePosY);
+  sceneMeLayer.text("E", 0, 0);
+  sceneMeLayer.pop();
+}
+
+export function resetSceneMe() {
+  initSceneMe();
+}
+
+export function handleSceneMeScroll(event) {
+  if (!sceneMeLayer) {
+    initSceneMe();
+  }
+  const deltaY = constrain(event.delta, -scrollingMaxSpd, scrollingMaxSpd);
+  const deltaX = constrain(event.deltaX || 0, -scrollingMaxSpd, scrollingMaxSpd);
+  const forceY = deltaY * 0.2;
+  const forceX = deltaX * 0.2;
+  sceneMeVx += random(-0.5, 0.5) * forceY;
+  sceneMeVy += forceY;
+  sceneMeVx += forceX;
+  sceneMeVx = constrain(sceneMeVx, -12, 12);
+  sceneMeVy = constrain(sceneMeVy, -12, 12);
+}
+
+export function sceneMe() {
+  if (!sceneMeLayer || sceneMeLayer.width !== width || sceneMeLayer.height !== height) {
+    initSceneMe();
+  }
+
+  envLayer.clear();
+  envLayer.background(20);
+
+  updateSceneMePhysics();
+  drawSceneMeLetters();
+
+  for (let x = 0; x < width; x += sceneMeGridSize) {
+    for (let y = 0; y < height; y += sceneMeGridSize) {
+      const c = sceneMeLayer.get(x, y);
+      if (brightness(c) > 50) {
+        const mappedCount = min(sceneMeBounceCount, sceneMeTargetBounces);
+        const r = map(mappedCount, 0, sceneMeTargetBounces, 100, 255);
+        const g = map(mappedCount, 0, sceneMeTargetBounces, 255, 50);
+        const b = 200;
+        envLayer.fill(r, g, b);
+        envLayer.noStroke();
+        envLayer.rect(x, y, sceneMeGridSize * 0.8, sceneMeGridSize * 0.8);
+      }
+    }
+  }
+
+  image(envLayer, 0, 0);
+
+  if (
+    !sceneMeTransitionStarted &&
+    sceneMeBounceCount >= sceneMeTriggerBounces &&
+    !state.duringTransition &&
+    state.transitions[4]
+  ) {
+    sceneMeTransitionStarted = true;
+    state.transitions[4].startTransition();
   }
 }
 

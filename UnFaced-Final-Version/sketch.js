@@ -26,7 +26,13 @@ import {
   scene3,
   scene4,
   sceneEscape,
+  sceneFactory,
+  sceneFactoryEnd,
+  sceneMe,
   isScene3RedButtonHit,
+  resetFactoryScene,
+  resetSceneMe,
+  handleSceneMeScroll,
 } from "./scenes.js";
 
 // export const state = {
@@ -71,6 +77,21 @@ function preload() {
   state.chapter2MapImg = loadImage("assets/Ch2-Escape/Map.png");
   // Default page poster
   state.posterImg = loadImage("assets/Default-Page-Poster.png");
+  state.factoryEndImg = loadImage("assets/Factory-2.png");
+  const factoryFiles = [
+    "Adult-We-With-AngryFace.png",
+    "Adult-We-With-HappyFace.png",
+    "Adult-We-With-PuzzleFace.png",
+    "Adult-We-With-SadFace.png",
+    "Adult-We-Without-Mask-Or-Face.png",
+    "Adult-We.png",
+    "Doctor.png",
+    "Puppet.png",
+    "suit.png",
+  ];
+  state.factoryImages = factoryFiles
+    .map((f) => loadImage(`assets/Ch3-Factory/${f}`))
+    .filter(Boolean);
 }
 
 function setup() {
@@ -86,6 +107,9 @@ function setup() {
     new Scene(sceneBounds[3].start, sceneBounds[3].end, scene3, 3),
     new Scene(sceneBounds[4].start, sceneBounds[4].end, scene4, 4),
     new Scene(sceneBounds[5].start, sceneBounds[5].end, sceneEscape, 5),
+    new Scene(sceneBounds[6].start, sceneBounds[6].end, sceneFactory, 6),
+    new Scene(sceneBounds[7].start, sceneBounds[7].end, sceneFactoryEnd, 7),
+    new Scene(sceneBounds[8].start, sceneBounds[8].end, sceneMe, 8),
   ];
   state.transitions = [
     new Transition(transitionDuration, 0),
@@ -115,12 +139,28 @@ function draw() {
       let activeScene = state.scenes.find((scene) =>
         scene.contains(state.currentScrollingPosition)
       );
+      if (
+        !activeScene &&
+        state.currentScrollingPosition > state.scenes[state.scenes.length - 1].end
+      ) {
+        state.currentScrollingPosition = state.scenes[state.scenes.length - 1].end;
+        activeScene = state.scenes[state.scenes.length - 1];
+      }
       console.log("Scene at Position:", state.currentScrollingPosition);
       if (activeScene && state.currentSceneCode !== activeScene.sceneCode) {
         if (activeScene.render === sceneEscape) {
           labyrinthLayerInitialize();
+        } else if (activeScene.render === sceneFactory) {
+          resetFactoryScene();
+        } else if (activeScene.render === sceneFactoryEnd) {
+          state.factoryEndTransitionStarted = false;
+        } else if (activeScene.render === sceneMe) {
+          resetSceneMe();
         }
         state.currentSceneCode = activeScene.sceneCode;
+      }
+      if (!activeScene) {
+        return;
       }
       if (activeScene.render != sceneEscape) {
         image(envLayer, 0, 0);
@@ -128,14 +168,6 @@ function draw() {
         leftHand.update(0);
         leftHand.display(handLayer);
         // image(handLayer, 0, height - handLayer.height);
-      }
-
-      if (
-        state.currentScrollingPosition >
-        state.scenes[state.scenes.length - 1].end
-      ) {
-        state.currentScrollingPosition =
-          state.scenes[state.scenes.length - 1].end;
       }
 
       if (activeScene) {
@@ -200,6 +232,13 @@ function mouseWheel(event) {
       let activeScene = state.scenes.find((scene) =>
         scene.contains(state.currentScrollingPosition)
       );
+      if (!activeScene) {
+        state.currentScrollingPosition += mouseScrollingExtent;
+        return false;
+      }
+      if (activeScene && activeScene.render === sceneMe) {
+        handleSceneMeScroll(event);
+      }
       if (activeScene && activeScene.render != sceneEscape) {
         let nextScroll = state.currentScrollingPosition + mouseScrollingExtent;
         if (activeScene.render === scene3) {
