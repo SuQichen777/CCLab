@@ -262,7 +262,7 @@ function mouseWheel(event) {
             state.transitions[1] &&
             !state.duringTransition
           ) {
-            state.transitions[1].startTransition();
+            // state.transitions[1].startTransition();
             return false;
           }
           nextScroll = Math.min(nextScroll, activeScene.end);
