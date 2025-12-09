@@ -233,6 +233,17 @@ function mouseWheel(event) {
         scene.contains(state.currentScrollingPosition)
       );
       if (!activeScene) {
+        const betweenFactoryEndAndSceneMe =
+          state.currentScrollingPosition >= sceneBounds[7].end &&
+          state.currentScrollingPosition < sceneBounds[8].start;
+        if (
+          betweenFactoryEndAndSceneMe &&
+          !state.duringTransition &&
+          state.transitions[3]
+        ) {
+          state.transitions[3].startTransition();
+          return false;
+        }
         state.currentScrollingPosition += mouseScrollingExtent;
         return false;
       }
@@ -274,7 +285,7 @@ function mousePressed() {
     }
   } else if (!state.storyStarted) {
     state.storyStarted = true;
-    state.transitions[2].startTransition();
+    state.transitions[0].startTransition();
   } else if (isScene3RedButtonHit(mouseX, mouseY)) {
     const transition = state.transitions[1];
     if (transition) {
