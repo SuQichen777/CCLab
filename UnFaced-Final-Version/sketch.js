@@ -332,7 +332,7 @@ function mousePressed() {
     }
   } else if (!state.storyStarted) {
     state.storyStarted = true;
-    state.transitions[3].startTransition();
+    state.transitions[0].startTransition();
   } else if (isScene3RedButtonHit(mouseX, mouseY)) {
     if (state.doorOpenSound && !state.s3DoorSoundPlayed) {
       state.doorOpenSound.play();
