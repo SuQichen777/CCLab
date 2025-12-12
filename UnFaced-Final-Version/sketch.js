@@ -82,6 +82,7 @@ function preload() {
   state.chapter2MapImg = loadImage("assets/Ch2-Escape/Map.png");
   // Default page poster
   state.posterImg = loadImage("assets/Default-Page-Poster.png");
+  state.defaultPageImage = loadImage("assets/Default-Page-Image.png");
   state.factoryEndImg = loadImage("assets/Factory-2.png");
   state.doorOpenSound = loadSound("assets/Door-Open.mp3");
   state.heartbeatSound = loadSound("assets/Transition/HeartBeat.mp3");
@@ -203,6 +204,9 @@ function defaultPage() {
   const shakeY = map(noise(frameCount * 0.1 + 1000), 0, 1, -shakeMagnitude, shakeMagnitude);
 
   imageMode(CENTER);
+    if (state.defaultPageImage) {
+      image(state.defaultPageImage, width / 2, height / 2, width, height);
+    }
   if (state.posterImg) {
     image(state.posterImg, leftCenterX + shakeX, leftCenterY + shakeY, 300, 375);
   }
@@ -213,15 +217,15 @@ function defaultPage() {
   textSize(24);
   textFont("Edu NSW ACT Cursive");
 
-  const contentStr =
-    'This is a poster of "We", and you are a member of "Us". You are the same, non-deviant, and safe with your mask on. Press your mouse to start your journey.Hint: Scroll to Proceed. Click if you are stuck.';
+  // const contentStr =
+    
 
   const textX = 550;
   const textY = 100;
   const textWidth = 400;
   const textHeight = 450;
 
-  text(contentStr, textX, textY, textWidth, textHeight);
+  // text(contentStr, textX, textY, textWidth, textHeight);
   pop();
 }
 

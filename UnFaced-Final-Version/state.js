@@ -9,6 +9,7 @@ export const state = {
   mirrorImg: null,
   chapter2TitleImg: null,
   chapter2MapImg: null,
+  defaultPageImage: null,
   posterImg: null,
   factoryEndImg: null,
   faceMesh: null,
