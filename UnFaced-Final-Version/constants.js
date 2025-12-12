@@ -9,7 +9,7 @@ export const sceneBounds = [
   { start: 3000, end: 4000 }, //escape
   { start: 4500, end: 8100 }, //sceneFactory
   { start: 7900, end: 9000 }, //sceneFactoryEnd
-  { start: 10000, end: Infinity}, // sceneMe
+  { start: 9999, end: Infinity}, // sceneMe
 ];
 
 export const defaultPageOptions =  { maxFaces: 1, refineLandmarks: false, flipped: false };
