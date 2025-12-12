@@ -68,6 +68,11 @@ let faceMesh,
     "!",
   ];
 
+const escapeKeyState = {
+  left: false,
+  right: false,
+};
+
 function preload() {
   faceMesh = ml5.faceMesh(options);
   state.faceMesh = faceMesh;
@@ -88,7 +93,8 @@ function preload() {
     "Adult-We-With-PuzzleFace.png",
     "Adult-We-With-SadFace.png",
     "Adult-We-Without-Mask-Or-Face.png",
-    "Adult-We.png",
+    "Adult-We-Y.png",
+    "Adult-We-Z.png",
     "Doctor.png",
     "Puppet.png",
     "suit.png",
@@ -174,6 +180,9 @@ function draw() {
         // image(handLayer, 0, height - handLayer.height);
       }
 
+      if (activeScene && activeScene.render === sceneEscape) {
+        handleSceneEscapeKeyboardMovement();
+      }
       if (activeScene) {
         activeScene.render();
       }
@@ -253,6 +262,7 @@ function mouseWheel(event) {
       }
       if (activeScene && activeScene.render === sceneMe) {
         handleSceneMeScroll(event);
+        return false;
       }
       if (activeScene && activeScene.render != sceneEscape) {
         let nextScroll = state.currentScrollingPosition + mouseScrollingExtent;
@@ -271,8 +281,8 @@ function mouseWheel(event) {
         }
         state.currentScrollingPosition = nextScroll;
       } else if (activeScene) {
-        let dx = constrain(-event.deltaX, -0.6, 0.6);
-        let dy = constrain(-event.deltaY, -0.6, 0.6);
+        let dx = constrain(-event.deltaX, -1, 1);
+        let dy = constrain(-event.deltaY, -1, 1);
         characterMe.update(dx, dy, labyrinthWalls);
         if (characterMe.y < 0) {
           const transition = state.transitions[2];
@@ -288,16 +298,41 @@ function mouseWheel(event) {
   return false;
 }
 
+function handleSceneEscapeKeyboardMovement() {
+  if (!state.storyStarted || state.duringTransition) return;
+  let dx = 0;
+  let dy = 0;
+  if (escapeKeyState.left) {
+    dx -= 1;
+  }
+  if (escapeKeyState.right) {
+    dx += 1;
+  }
+  if (dx === 0 && dy === 0) return;
+  characterMe.update(dx, dy, labyrinthWalls);
+  if (characterMe.y < 0) {
+    const transition = state.transitions[2];
+    if (transition && !state.duringTransition) {
+      transition.startTransition();
+    }
+  } else if (characterMe.y > 575) {
+    state.currentScrollingPosition = sceneBounds[4].end - 100;
+  }
+}
+
 function mousePressed() {
   if (state.duringTransition) {
     const currentTransition =
       state.transitions[state.currentTransitionStartingPage];
-    if (currentTransition) {
+    if (
+      currentTransition &&
+      (currentTransition.transitionCode === 0 || currentTransition.videoContentShown)
+    ) {
       currentTransition.allowEnd = true;
     }
   } else if (!state.storyStarted) {
     state.storyStarted = true;
-    state.transitions[0].startTransition();
+    state.transitions[3].startTransition();
   } else if (isScene3RedButtonHit(mouseX, mouseY)) {
     if (state.doorOpenSound && !state.s3DoorSoundPlayed) {
       state.doorOpenSound.play();
@@ -307,6 +342,29 @@ function mousePressed() {
     if (transition) {
       transition.startTransition();
     }
+  }
+}
+
+function keyPressed() {
+  if (!state.storyStarted || state.duringTransition) return;
+  if (key === "a" || key === "A" || keyCode === LEFT_ARROW) {
+    escapeKeyState.left = true;
+    return false;
+  }
+  if (key === "d" || key === "D" || keyCode === RIGHT_ARROW) {
+    escapeKeyState.right = true;
+    return false;
+  }
+}
+
+function keyReleased() {
+  if (key === "a" || key === "A" || keyCode === LEFT_ARROW) {
+    escapeKeyState.left = false;
+    return false;
+  }
+  if (key === "d" || key === "D" || keyCode === RIGHT_ARROW) {
+    escapeKeyState.right = false;
+    return false;
   }
 }
 
@@ -331,4 +389,6 @@ window.setup = setup;
 window.draw = draw;
 window.mouseWheel = mouseWheel;
 window.mousePressed = mousePressed;
+window.keyPressed = keyPressed;
+window.keyReleased = keyReleased;
 window.gotFaces = gotFaces;

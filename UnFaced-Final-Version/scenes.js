@@ -37,8 +37,9 @@ let sceneMeBounceCount = 0;
 const sceneMeTargetBounces = 18;
 const sceneMeTriggerBounces = 22;
 const sceneMeFriction = 0.99;
-const sceneMeWallDamping = -0.8;
+const sceneMeWallDamping = -0.98;
 let sceneMeTransitionStarted = false;
+let sceneMeLastBounceTime = 0;
 
 function stopHeartbeat() {
   if (state.heartbeatSound) {
@@ -110,7 +111,7 @@ class FactoryCargo {
 
     const laneWidthCurrent = x2 - x1;
     const boxW = laneWidthCurrent * 0.8;
-    const boxH = boxW;
+    const boxH = boxW * 1.2;
     const centerX = (x1 + x2) / 2;
 
     layer.push();
@@ -386,20 +387,27 @@ export function sceneFactoryEnd() {
   const baseScale = Math.max(width / img.width, height / img.height);
   const startScale = baseScale;
   const endScale = Math.max(width / 400, height / 240);
-  const startCenter = createVector(width / 2, height / 2);
-  const focusCanvas = createVector(width / 2, height / 10);
-  const targetCenter = createVector(width / 2, height / 2);
-  const focusLocal = p5.Vector.sub(focusCanvas, startCenter).div(startScale);
-  const endCenter = p5.Vector.sub(targetCenter, p5.Vector.mult(focusLocal, endScale));
+  const startCenterX = width / 2;
+  const startCenterY = height / 2;
+  const focusCanvasX = width / 2;
+  const focusCanvasY = height / 10;
+  const targetCenterX = width / 2;
+  const targetCenterY = height / 2;
+
+  const focusLocalX = (focusCanvasX - startCenterX) / startScale;
+  const focusLocalY = (focusCanvasY - startCenterY) / startScale;
+  const endCenterX = targetCenterX - focusLocalX * endScale;
+  const endCenterY = targetCenterY - focusLocalY * endScale;
 
   const drawScale = lerp(startScale, endScale, progress);
-  const drawCenter = p5.Vector.lerp(startCenter, endCenter, progress);
+  const drawCenterX = lerp(startCenterX, endCenterX, progress);
+  const drawCenterY = lerp(startCenterY, endCenterY, progress);
   const drawW = img.width * drawScale;
   const drawH = img.height * drawScale;
 
   envLayer.push();
   envLayer.imageMode(CENTER);
-  envLayer.image(img, drawCenter.x, drawCenter.y, drawW, drawH);
+  envLayer.image(img, drawCenterX, drawCenterY, drawW, drawH);
   envLayer.pop();
 
   if (
@@ -490,11 +498,13 @@ export class Transition {
     this.transitionCode = transitionCode;
     this.currentPosition = 0;
     this.allowEnd = false;
+    this.videoContentShown = false;
   }
 
   startTransition() {
     this.currentPosition = 0;
     this.allowEnd = false;
+    this.videoContentShown = false;
     state.duringTransition = true;
     state.currentTransitionStartingPage = this.transitionCode;
     transitionRenderInit();
@@ -506,7 +516,7 @@ export class Transition {
     if (this.currentPosition < 0) {
       this.currentPosition = 0;
     }
-    const blinkEnd = 47 * this.duration / 150;
+    const blinkEnd = 25 * this.duration / 150;
     const moveEnd = (2 * this.duration) / 3;
     const eyeShrinkEnd = (12 * this.duration) / 15;
     const coverEnd = this.duration;
@@ -686,6 +696,9 @@ export class Transition {
   }
 
   renderTransitionContent() {
+    if ([1, 2, 3, 4].includes(this.transitionCode)) {
+      this.videoContentShown = true;
+    }
     if (this.transitionCode === 0) {
       background(0);
       push();
@@ -800,6 +813,7 @@ function initSceneMe() {
   sceneMeWAngle = 0;
   sceneMeBounceCount = 0;
   sceneMeTransitionStarted = false;
+  sceneMeLastBounceTime = 0;
 }
 
 function updateSceneMePhysics() {
@@ -825,15 +839,19 @@ function updateSceneMePhysics() {
   }
 
   if (hit && (abs(sceneMeVx) > 1 || abs(sceneMeVy) > 1)) {
-    if (sceneMeBounceCount < sceneMeTriggerBounces) {
-      sceneMeBounceCount++;
-      if (sceneMeBounceCount <= sceneMeTargetBounces) {
-        sceneMeWAngle += 10;
-      } else {
+    const now = millis();
+    if (now - sceneMeLastBounceTime >= 500) {
+      sceneMeLastBounceTime = now;
+      if (sceneMeBounceCount < sceneMeTriggerBounces) {
+        sceneMeBounceCount++;
+        if (sceneMeBounceCount <= sceneMeTargetBounces) {
+          sceneMeWAngle += 10;
+        } else {
+          sceneMeWAngle = 180;
+        }
+      } else if (sceneMeBounceCount === sceneMeTriggerBounces) {
         sceneMeWAngle = 180;
       }
-    } else if (sceneMeBounceCount === sceneMeTriggerBounces) {
-      sceneMeWAngle = 180;
     }
   }
 }
