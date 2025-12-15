@@ -1,3 +1,4 @@
+// all global variables
 export const state = {
   storyStarted: false,
   currentScrollingPosition: 0,

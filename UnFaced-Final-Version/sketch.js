@@ -1,19 +1,13 @@
 import { state } from "./state.js";
 import {
   sceneBounds,
-  scrollingMaxSpd,
   defaultPageOptions,
   transitionDuration,
 } from "./constants.js";
 import {
   createLayers,
-  handLayerInitialize,
-  envLayerInitialize,
-  maskLayerInitialize,
   envLayer,
   maskLayer,
-  handLayer,
-  leftHand,
   characterMe,
   labyrinthWalls,
   labyrinthLayerInitialize,
@@ -29,60 +23,37 @@ import {
   sceneFactory,
   sceneFactoryEnd,
   sceneMe,
-  isScene3RedButtonHit,
   resetFactoryScene,
   resetSceneMe,
-  handleSceneMeScroll,
 } from "./scenes.js";
-
-// export const state = {
-//   storyStarted: false,
-//   currentScrollingPosition: 0,
-//   scenes: [],
-// };
+import {
+  mouseWheel,
+  mousePressed,
+  keyPressed,
+  keyReleased,
+} from "./app/input.js";
+import { handleSceneEscapeKeyboardMovement } from "./app/controls.js";
 
 // Default Page Data
 let faceMesh,
-  video,
-  randomnessControl = 0.7,
-  faces = [],
-  frozenFaces = [],
-  isFaceFrozen = false,
   options = defaultPageOptions,
-  frozenCircleRadius = 2,
-  clickMask = null,
-  randomChar = [
-    "a",
-    "b",
-    "c",
-    "d",
-    "e",
-    "f",
-    "g",
-    "h",
-    "i",
-    "j",
-    "&",
-    "^",
-    "@",
-    "!",
-  ];
+  faces = [];
 
-const escapeKeyState = {
-  left: false,
-  right: false,
-};
-
-function preload() {
+export function preload() {
+  // faceMesh for all transitions
   faceMesh = ml5.faceMesh(options);
   state.faceMesh = faceMesh;
   state.mirrorImg = loadImage("assets/Transition/Mirror.png");
   // Preload Chapter 2 assets for scene4
-  state.chapter2TitleImg = loadImage("assets/Ch2-Escape/Chapter2-With-Title.png");
+  state.chapter2TitleImg = loadImage(
+    "assets/Ch2-Escape/Chapter2-With-Title.png"
+  );
   state.chapter2MapImg = loadImage("assets/Ch2-Escape/Map.png");
   // Default page poster
   state.posterImg = loadImage("assets/Default-Page-Poster.png");
+  // Default page Background
   state.defaultPageImage = loadImage("assets/Default-Page-Image.png");
+  // Scene Factory Background
   state.factoryEndImg = loadImage("assets/Factory-2.png");
   state.doorOpenSound = loadSound("assets/Door-Open.mp3");
   state.heartbeatSound = loadSound("assets/Transition/HeartBeat.mp3");
@@ -105,7 +76,7 @@ function preload() {
     .filter(Boolean);
 }
 
-function setup() {
+export function setup() {
   let canvas = createCanvas(1000, 600);
   createLayers(width, height);
   state.currentScrollingPosition = 0;
@@ -129,16 +100,15 @@ function setup() {
     new Transition(transitionDuration, 3),
     new Transition(transitionDuration, 4),
   ];
-  envLayerInitialize();
-  maskLayerInitialize();
-  handLayerInitialize();
   canvas.id("p5-canvas");
   canvas.parent("p5-canvas-container");
 }
 
-function draw() {
+export function draw() {
   imageMode(CORNER);
+  // Transition or Scene
   if (state.storyStarted) {
+    // Transition
     if (state.duringTransition) {
       if (state.currentTransitionStartingPage == -1) return;
       let currentTransition =
@@ -150,11 +120,15 @@ function draw() {
       let activeScene = state.scenes.find((scene) =>
         scene.contains(state.currentScrollingPosition)
       );
+      // Prevent Scrolling Overflow
+      // If out of the end, get back
       if (
         !activeScene &&
-        state.currentScrollingPosition > state.scenes[state.scenes.length - 1].end
+        state.currentScrollingPosition >
+          state.scenes[state.scenes.length - 1].end
       ) {
-        state.currentScrollingPosition = state.scenes[state.scenes.length - 1].end;
+        state.currentScrollingPosition =
+          state.scenes[state.scenes.length - 1].end;
         activeScene = state.scenes[state.scenes.length - 1];
       }
       console.log("Scene at Position:", state.currentScrollingPosition);
@@ -175,15 +149,12 @@ function draw() {
       }
       if (activeScene.render != sceneEscape) {
         image(envLayer, 0, 0);
-        handLayer.clear();
-        leftHand.update(0);
-        leftHand.display(handLayer);
-        // image(handLayer, 0, height - handLayer.height);
       }
 
       if (activeScene && activeScene.render === sceneEscape) {
         handleSceneEscapeKeyboardMovement();
       }
+      // By default: render the current active scene
       if (activeScene) {
         activeScene.render();
       }
@@ -200,194 +171,47 @@ function defaultPage() {
   const shakeMagnitude = 2.5;
   const leftCenterX = 250;
   const leftCenterY = 300;
-  const shakeX = map(noise(frameCount * 0.1), 0, 1, -shakeMagnitude, shakeMagnitude);
-  const shakeY = map(noise(frameCount * 0.1 + 1000), 0, 1, -shakeMagnitude, shakeMagnitude);
+  const shakeX = map(
+    noise(frameCount * 0.1),
+    0,
+    1,
+    -shakeMagnitude,
+    shakeMagnitude
+  );
+  const shakeY = map(
+    noise(frameCount * 0.1 + 1000),
+    0,
+    1,
+    -shakeMagnitude,
+    shakeMagnitude
+  );
 
   imageMode(CENTER);
-    if (state.defaultPageImage) {
-      image(state.defaultPageImage, width / 2, height / 2, width, height);
-    }
-  if (state.posterImg) {
-    image(state.posterImg, leftCenterX + shakeX, leftCenterY + shakeY, 300, 375);
+  if (state.defaultPageImage) {
+    image(state.defaultPageImage, width / 2, height / 2, width, height);
   }
-
-  fill(220);
-  noStroke();
-  textAlign(LEFT, TOP);
-  textSize(24);
-  textFont("Edu NSW ACT Cursive");
-
-  // const contentStr =
-    
-
-  const textX = 550;
-  const textY = 100;
-  const textWidth = 400;
-  const textHeight = 450;
-
-  // text(contentStr, textX, textY, textWidth, textHeight);
+  if (state.posterImg) {
+    image(
+      state.posterImg,
+      leftCenterX + shakeX,
+      leftCenterY + shakeY,
+      300,
+      375
+    );
+  }
   pop();
 }
 
-function mouseWheel(event) {
-  if (event && event.preventDefault) {
-    event.preventDefault();
-  }
-  if (leftHand.currentMode != 1 && state.storyStarted) {
-    let mouseScrollingExtent = constrain(
-      event.delta,
-      -scrollingMaxSpd,
-      scrollingMaxSpd
-    );
-    if (state.duringTransition) {
-      // In Transition
-      if (state.currentTransitionStartingPage == -1) return;
-      let currentTransition =
-        state.transitions[state.currentTransitionStartingPage];
-      currentTransition.currentPosition += mouseScrollingExtent;
-    } else {
-      let activeScene = state.scenes.find((scene) =>
-        scene.contains(state.currentScrollingPosition)
-      );
-      if (!activeScene) {
-        const betweenFactoryEndAndSceneMe =
-          state.currentScrollingPosition >= sceneBounds[7].end &&
-          state.currentScrollingPosition < sceneBounds[8].start;
-        if (
-          betweenFactoryEndAndSceneMe &&
-          !state.duringTransition &&
-          state.transitions[3]
-        ) {
-          state.transitions[3].startTransition();
-          return false;
-        }
-        state.currentScrollingPosition += mouseScrollingExtent;
-        return false;
-      }
-      if (activeScene && activeScene.render === sceneMe) {
-        handleSceneMeScroll(event);
-        return false;
-      }
-      if (activeScene && activeScene.render != sceneEscape) {
-        let nextScroll = state.currentScrollingPosition + mouseScrollingExtent;
-        if (activeScene.render === scene3) {
-          if (
-            nextScroll >= activeScene.end &&
-            state.transitions[1] &&
-            !state.duringTransition
-          ) {
-            // state.transitions[1].startTransition();
-            return false;
-          }
-          nextScroll = Math.min(nextScroll, activeScene.end);
-        } else if (activeScene.render === scene4) {
-          nextScroll = Math.max(nextScroll, activeScene.start);
-        }
-        state.currentScrollingPosition = nextScroll;
-      } else if (activeScene) {
-        let dx = constrain(-event.deltaX, -1, 1);
-        let dy = constrain(-event.deltaY, -1, 1);
-        characterMe.update(dx, dy, labyrinthWalls);
-        if (characterMe.y < 0) {
-          const transition = state.transitions[2];
-          if (transition && !state.duringTransition) {
-            transition.startTransition();
-          }
-        } else if (characterMe.y > 575) {
-          state.currentScrollingPosition = sceneBounds[4].end - 100;
-        }
-      }
-    }
-  }
-  return false;
-}
-
-function handleSceneEscapeKeyboardMovement() {
-  if (!state.storyStarted || state.duringTransition) return;
-  let dx = 0;
-  let dy = 0;
-  if (escapeKeyState.left) {
-    dx -= 1;
-  }
-  if (escapeKeyState.right) {
-    dx += 1;
-  }
-  if (dx === 0 && dy === 0) return;
-  characterMe.update(dx, dy, labyrinthWalls);
-  if (characterMe.y < 0) {
-    const transition = state.transitions[2];
-    if (transition && !state.duringTransition) {
-      transition.startTransition();
-    }
-  } else if (characterMe.y > 575) {
-    state.currentScrollingPosition = sceneBounds[4].end - 100;
-  }
-}
-
-function mousePressed() {
-  if (state.duringTransition) {
-    const currentTransition =
-      state.transitions[state.currentTransitionStartingPage];
-    if (
-      currentTransition &&
-      (currentTransition.transitionCode === 0 || currentTransition.videoContentShown)
-    ) {
-      currentTransition.allowEnd = true;
-    }
-  } else if (!state.storyStarted) {
-    state.storyStarted = true;
-    state.transitions[0].startTransition();
-  } else if (isScene3RedButtonHit(mouseX, mouseY)) {
-    if (state.doorOpenSound && !state.s3DoorSoundPlayed) {
-      state.doorOpenSound.play();
-      state.s3DoorSoundPlayed = true;
-    }
-    const transition = state.transitions[1];
-    if (transition) {
-      transition.startTransition();
-    }
-  }
-}
-
-function keyPressed() {
-  if (!state.storyStarted || state.duringTransition) return;
-  if (key === "a" || key === "A" || keyCode === LEFT_ARROW) {
-    escapeKeyState.left = true;
-    return false;
-  }
-  if (key === "d" || key === "D" || keyCode === RIGHT_ARROW) {
-    escapeKeyState.right = true;
-    return false;
-  }
-}
-
-function keyReleased() {
-  if (key === "a" || key === "A" || keyCode === LEFT_ARROW) {
-    escapeKeyState.left = false;
-    return false;
-  }
-  if (key === "d" || key === "D" || keyCode === RIGHT_ARROW) {
-    escapeKeyState.right = false;
-    return false;
-  }
-}
-
-function gotFaces(results) {
-  // set cache if not detected
-  if (!isFaceFrozen && results && results.length > 0) {
-    faces = results.map((face) => ({
-      ...face,
-      keypoints: face.keypoints.map((kp) => ({
-        ...kp,
-        ch: random(0, 1) < randomnessControl ? random(randomChar) : null,
-      })),
-    }));
-    state.faces = faces;
+export function gotFaces(results) {
+  if (results && results.length > 0) {
+    faces = results
   } else {
-    state.faces = [];
+    faces = [];
   }
+  state.faces = faces;
 }
 
+// Expose p5 entry points
 window.preload = preload;
 window.setup = setup;
 window.draw = draw;

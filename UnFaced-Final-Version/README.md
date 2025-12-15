@@ -1,24 +1,43 @@
 # UnFaced Final Version Structure
 
 ## Files and Responsibilities
-- `index.html` – Loads p5 and the module entry `sketch.js`.
-- `sketch.js` – the entry point of the whole canvas: creates layers, sets up `state.scenes` in Setup, and renders the active scene each frame in Draw.
-- `constants.js` – Static configuration, including scrolling speed and scene bound (start and end).
-- `state.js` – Shared runtime state including `currentScrollingPosition` and the `scenes` array.
-- `layers.js` – Creates graphics layers (`maskLayer`, `envLayer`, `handLayer`), and initializes and export instances drawn on those layers (hand, mask, room, walls, door).
-- `scenes.js` – `Scene` class and scene render functions (`scene1`, `scene2`, `scene3`, `scene4`) that dynamically updates using exports from `layers` and `state`.
-- `classes/` – Reusable primitives (`Mask`, `Hand`, `Line`, `RectangleWithLine`), importing shared state/constants when needed.
+- `index.html` – Boots p5.js and loads the module entry `sketch.js`.
+- `sketch.js` – Main loop: creates layers, sets up `state.scenes`/`state.transitions`, renders the active scene each frame.
+- `constants.js` – Static config (`sceneBounds`, `scrollingMaxSpd`, `transitionDuration`).
+- `state.js` – Shared runtime state (current scroll, scenes, transitions, assets, sounds).
+- `layers.js` – Creates p5 graphics layers (`maskLayer`, `envLayer`, `labyrinthLayer`, `tranEyeLayer`) and seeds reusable shapes/characters.
+- `scenes.js` – `Scene` class plus all scene renderers (mask intro, room/door, chapter reveal, maze, factory, “WE” bounce) and `Transition` logic (blink/mirror/video).
+- `classes/` – Reusable primitives (`Mask`, `Line`, `RectangleWithLine`, `Wall`, `Character`) used by scenes.
+- `app/input.js` / `app/controls.js` – Mouse/keyboard routing: wheel drives scroll or transition time; click starts story or triggers door; keys move in the maze.
+- `style.css`, `assets/` – Visual/audio assets.
+
+## Runtime Flow
+1) `preload` loads images, sounds, and ml5 facemesh; `setup` creates canvas, layers, and registers scenes/transitions.
+2) `draw` checks `state.storyStarted`: if false, shows the default poster page; if true and `state.duringTransition`, renders the transition timeline; otherwise finds the active scene by `currentScrollingPosition` and renders it.
+3) Input: mouse wheel updates scroll or transition progress; click starts the story or confirms end-of-transition; WASD/arrow keys move the player in the maze.
+4) Scene-specific hooks: entering the maze resets the labyrinth; factory resets on entry; “WE” scene resets its physics grid.
+
+## Scenes & Transitions
+- Scene0 default page: poster shake on black background.
+- Scene1 mask intro: animated mask vignette.
+- Scene2 room framing: noisy room + walls + door scaffold.
+- Scene3 door + red button: click to trigger Transition 1.
+- Scene4 chapter reveal: title cover + map zoom.
+- SceneEscape: maze with player/enemy collision and color gradient.
+- SceneFactory: conveyor with spawned cargos tied to scroll.
+- SceneFactoryEnd: focus zoom on factory image; auto-start Transition 3 at end.
+- SceneMe: “W/E” bouncing physics on grid sampling; triggers final Transition 4.
+- Transitions: blink → room zoom → mirror cover with heartbeat, then mosaic/video variants (1–4) using webcam and facemesh.
 
 ## Typical Workflow to Add/Change a Scene
-1) Add or update scene timing in `constants.js` (`sceneBounds` entry, scroll speed if needed).
-2) If new primitives or graphics are required, add/extend classes in `classes/` or initialize new layer elements in `layers.js` and export them.
-3) Implement the scene render function in `scenes.js` (read/update exported layer instances and `state`).
-4) Register the new scene in `sketch.js` by pushing a `Scene` instance into `state.scenes`, using the bounds from `constants.js` and your render function.
-5) Run and verify that `draw` picks up the scene at the expected scroll range.
+1) Update `sceneBounds` in `constants.js` for timing; add a render function in `scenes.js`.
+2) If new shapes/characters are needed, init them in `layers.js` or add a class under `classes/`.
+3) Register the scene in `sketch.js` by pushing a `Scene` with bounds and renderer.
+4) Add any transition triggers (e.g., click/scroll thresholds) inside the scene.
+5) Test scroll ranges and transitions to ensure layering and state reset are correct.
 
-## TODO:
-- Change `state.currentScrollingPosition = sceneBounds[2].end - 100;`into the real reset scene in `sketch.js` and `scenes.js`
-- Add Sound Effect
-### Bugs will be fixed:
-- Currently pressing mouse before ml5.js is loaded might lead to a skip of the default page and the First transition page. 
-- Not Pressing the Red Button can still make it possible for Chapter 3.
+## TODO
+- Change `state.currentScrollingPosition = sceneBounds[2].end - 100;` into the real reset scene in `sketch.js` and `scenes.js`.
+- Add sound effect polish and sequencing.
+- Fix: pressing mouse before ml5.js loads can skip default page + first transition.
+- Fix: entering Chapter 3 without pressing the red button.

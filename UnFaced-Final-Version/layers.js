@@ -1,11 +1,10 @@
 import { Mask } from "./classes/Mask.js";
-import { Hand } from "./classes/Hand.js";
 import { Line } from "./classes/Line.js";
 import { RectangleWithLine } from "./classes/RectangleWithLine.js";
 import { Wall } from "./classes/Wall.js";
 import { Player, Enemy } from "./classes/Character.js";
 
-export let maskLayer, envLayer, handLayer, labyrinthLayer, tranEyeLayer;
+export let maskLayer, envLayer, labyrinthLayer, tranEyeLayer;
 export let s1NoisyRect,
   s1WallLineUpLeft,
   s1WallLineUpRight,
@@ -13,28 +12,13 @@ export let s1NoisyRect,
   s1WallLineDownRight;
 export let s3Door, s3DoorOffsetRatioX, s3DoorOffsetRatioY;
 export let mask;
-export let leftHand;
 export let characterMe, characterWe, characterWe2, labyrinthWalls = [];
 
 export function createLayers(mainWidth, mainHeight) {
   maskLayer = createGraphics(mainWidth, mainHeight);
   envLayer = createGraphics(mainWidth, mainHeight);
-  handLayer = createGraphics(mainWidth / 2, mainHeight / 2);
   labyrinthLayer = createGraphics(mainWidth, mainHeight);
   tranEyeLayer = createGraphics(mainWidth, mainHeight);
-}
-
-export function handLayerInitialize() {
-  leftHand = new Hand(
-    (2 * handLayer.width) / 5,
-    handLayer.height / 5,
-    (4 * handLayer.width) / 5,
-    (2 * handLayer.height) / 5,
-    color(255),
-    handLayer.width / 5,
-    (3 * handLayer.width) / 5
-  );
-  leftHand.display(handLayer);
 }
 
 export function envLayerInitialize() {

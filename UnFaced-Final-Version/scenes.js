@@ -17,6 +17,7 @@ import {
   labyrinthWalls,
   labyrinthLayerInitialize,
   envLayerInitialize,
+  maskLayerInitialize,
   characterMe,
   characterWe,
   characterWe2,
@@ -24,6 +25,8 @@ import {
 import { RectangleWithLine } from "./classes/RectangleWithLine.js";
 import { Line } from "./classes/Line.js";
 import { handlePlayerEnemyCollision } from "./classes/Character.js";
+
+let baseLayersInitialized = false;
 
 // SceneMe state
 let sceneMeLayer;
@@ -502,6 +505,11 @@ export class Transition {
   }
 
   startTransition() {
+    if (!baseLayersInitialized) {
+      envLayerInitialize();
+      maskLayerInitialize();
+      baseLayersInitialized = true;
+    }
     this.currentPosition = 0;
     this.allowEnd = false;
     this.videoContentShown = false;
