@@ -52,7 +52,7 @@ export function preload() {
   // Default page poster
   state.posterImg = loadImage("assets/Default-Page-Poster.png");
   // Default page Background
-  state.defaultPageImage = loadImage("assets/Default-Page-Image.png");
+  state.defaultPageImage = loadImage("assets/Default-Page-Image-ENG.png");
   // Scene Factory Background
   state.factoryEndImg = loadImage("assets/Factory-2.png");
   state.doorOpenSound = loadSound("assets/Door-Open.mp3");
