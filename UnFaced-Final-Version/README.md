@@ -41,3 +41,52 @@
 - Add sound effect polish and sequencing.
 - Fix: pressing mouse before ml5.js loads can skip default page + first transition.
 - Fix: entering Chapter 3 without pressing the red button.
+
+## Flowchart
+            [Default Page]
+                 |
+      click? ----+---- no
+       yes            | loop
+       |              |
+       v              |
+   [Transition 0] <---+
+       |
+       v
+   (Ch1)[Scene 1: Mask]
+       |scroll
+       v
+   (Ch1)[Scene 2: Room]
+       |scroll
+       v
+   (Ch1)[Scene 3: Door + Red Button]
+       |click red button
+       v
+   [Transition 1]
+       |scroll & click
+       v
+   (Ch2)[Scene 4: Chapter2 Reveal]
+       |scroll
+       v
+   (Ch2)[Scene Escape: Maze]
+       | (reach bottom back Scene 4)
+       | (reach top starts Transition 2)
+       v
+   [Transition 2]
+       |scroll & click
+       v
+   (Ch3)[Scene Factory]
+       |scroll
+       v
+   (Ch3)[Scene Factory End]
+       |scroll
+       v
+   [Transition 3]
+       |scroll & click
+       v
+   (Ch4)[Scene Me]
+       |scroll
+       v
+   [Transition 4]
+       |
+       v
+      End
