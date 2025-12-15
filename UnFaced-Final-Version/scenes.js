@@ -503,7 +503,6 @@ export class Transition {
     this.allowEnd = false;
     this.videoContentShown = false;
   }
-
   startTransition() {
     if (!baseLayersInitialized) {
       envLayerInitialize();
@@ -519,7 +518,6 @@ export class Transition {
     this.initTransitionContent();
     startHeartbeat(2);
   }
-
   render() {
     if (this.currentPosition < 0) {
       this.currentPosition = 0;
@@ -561,7 +559,6 @@ export class Transition {
       }
     }
   }
-
   endTransition() {
     if (!this.allowEnd){return;}
     stopHeartbeat();
@@ -587,7 +584,6 @@ export class Transition {
       window.location.reload();
     }
   }
-
   updateTranEyeLayer(restriction) {
     tranEyeLayer.background(0);
     const progress = constrain(this.currentPosition / restriction, 0, 1);
@@ -606,7 +602,6 @@ export class Transition {
     tranEyeLayer.noErase();
     tranEyeLayer.filter(BLUR, 20);
   }
-
   updateTranEyeLayerShrink(start, end) {
     tranEyeLayer.background(0);
     const progress = constrain((this.currentPosition - start) / (end - start), 0, 1);
@@ -626,7 +621,6 @@ export class Transition {
     tranEyeLayer.noErase();
     tranEyeLayer.filter(BLUR, 20);
   }
-
   updateTransitionScene2(progress) {
     envLayer.clear();
     envLayer.background(255);
@@ -662,7 +656,6 @@ export class Transition {
     // restore actual scroll position
     state.currentScrollingPosition = prevPos;
   }
-
   updateTransitionMirror(progressRaw) {
     const mirrorImg = state.mirrorImg;
     if (!mirrorImg) return;
@@ -681,7 +674,6 @@ export class Transition {
     envLayer.image(mirrorImg, s1NoisyRect.centerX, s1NoisyRect.centerY, drawWidth, drawHeight);
     envLayer.pop();
   }
-
   initTransitionContent() {
     if (this.transitionCode === 0) {
       transitionPhrases = [];
@@ -702,7 +694,6 @@ export class Transition {
       noStroke();
     }
   }
-
   renderTransitionContent() {
     if ([1, 2, 3, 4].includes(this.transitionCode)) {
       this.videoContentShown = true;
@@ -727,7 +718,6 @@ export class Transition {
       this.renderVideoDirect();
     }
   }
-
   renderMosaicTransition({
     faceColorMode = "grayscale",
     faceBlockSize = 40,
@@ -795,7 +785,6 @@ export class Transition {
     }
     pop();
   }
-
   renderVideoDirect() {
     background(0);
     if (!state.video) return;
